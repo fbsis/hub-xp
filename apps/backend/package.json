@@ -27,6 +27,7 @@
     "@nestjs/config": "^3.0.0",
     "@nestjs/swagger": "^7.1.0",
     "@domain/core": "workspace:*",
+    "@infrastructure/core": "workspace:*",
     "mongoose": "^7.5.0",
     "class-validator": "^0.14.0",
     "class-transformer": "^0.5.1",

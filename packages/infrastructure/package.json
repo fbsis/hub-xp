@@ -1,0 +1,20 @@
+{
+  "name": "@infrastructure/core",
+  "version": "1.0.0",
+  "description": "Infrastructure layer with database connections and schemas",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@domain/core": "workspace:*",
+    "mongoose": "^7.3.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.1.3",
+    "@types/node": "^20.3.1"
+  }
+} 

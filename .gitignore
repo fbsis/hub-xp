@@ -7,3 +7,5 @@ packages/domain/dist/
 .env
 
 packages/domain/coverage/
+
+packages/infrastructure/dist/
