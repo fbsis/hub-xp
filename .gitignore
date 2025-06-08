@@ -9,3 +9,5 @@ packages/domain/dist/
 packages/domain/coverage/
 
 packages/infrastructure/dist/
+
+packages/infrastructure/coverage/
