@@ -46,21 +46,6 @@ const BookSchema = new Schema<BookMongoDocument>(
       trim: true,
       maxlength: 1000,
       default: ''
-    },
-    avgRating: {
-      type: Number,
-      required: true,
-      min: 0,
-      max: 5,
-      default: 0,
-      index: true
-    },
-    reviewCount: {
-      type: Number,
-      required: true,
-      min: 0,
-      default: 0,
-      index: true
     }
   },
   {
@@ -72,7 +57,6 @@ const BookSchema = new Schema<BookMongoDocument>(
 
 // Indexes for better query performance
 BookSchema.index({ title: 'text', author: 'text', description: 'text' }); // Text search
-BookSchema.index({ avgRating: -1, reviewCount: -1 }); // Top books query
 BookSchema.index({ createdAt: -1 }); // Recent books
 BookSchema.index({ author: 1, publishedYear: -1 }); // Author + year queries
 
