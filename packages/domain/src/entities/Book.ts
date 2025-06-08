@@ -1,4 +1,4 @@
-import { BookTitle, Author, ISBN, PublishedYear, Description, AverageRating, ReviewCount } from '../value-objects';
+import { BookTitle, Author, ISBN, PublishedYear, Description } from '../value-objects';
 
 export interface Book {
   _id: string;
@@ -7,8 +7,6 @@ export interface Book {
   isbn?: ISBN;
   publishedYear: PublishedYear;
   description?: Description;
-  avgRating: AverageRating;
-  reviewCount: ReviewCount;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -21,10 +19,14 @@ export interface BookPrimitive {
   isbn?: string;
   publishedYear: number;
   description?: string;
-  avgRating: number;
-  reviewCount: number;
   createdAt: Date;
   updatedAt: Date;
+}
+
+// Book with calculated statistics from reviews
+export interface BookWithStats extends BookPrimitive {
+  avgRating: number;
+  reviewCount: number;
 }
 
 export interface BookDocument extends Omit<BookPrimitive, '_id'> {
