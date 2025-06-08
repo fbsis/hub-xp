@@ -57,7 +57,6 @@ const ReviewSchema = new Schema<ReviewMongoDocument>(
 ReviewSchema.index({ bookId: 1, createdAt: -1 }); // Reviews for a book
 ReviewSchema.index({ rating: -1, createdAt: -1 }); // Top reviews
 ReviewSchema.index({ reviewerName: 1, createdAt: -1 }); // Reviews by user
-ReviewSchema.index({ bookId: 1, reviewerName: 1 }, { unique: true }); // One review per user per book
 
 // Ensure virtual fields are serialized
 ReviewSchema.set('toJSON', {
