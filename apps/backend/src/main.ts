@@ -1,9 +1,17 @@
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  
+  // Global validation pipe
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    transform: true,
+  }));
   
   // Enable CORS for frontend
   app.enableCors({
@@ -32,5 +40,6 @@ async function bootstrap() {
   await app.listen(port);
   console.log(`Backend running on http://localhost:${port}`);
   console.log(`Swagger docs available at http://localhost:${port}/api/docs`);
+  console.log(`Database seeding available via POST /books/seed endpoint`);
 }
 bootstrap();
