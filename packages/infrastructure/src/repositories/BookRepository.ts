@@ -1,26 +1,30 @@
-import { BookModel, BookMongoDocument } from '../schemas/BookSchema';
-import { BookPrimitive, CreateBookDto, UpdateBookDto, GetBooksDto } from '@domain/core';
+import { Model } from 'mongoose';
+import { BookMongoDocument } from '../schemas/BookSchema';
+import { BookPrimitive, CreateBookDto, UpdateBookDto, GetBooksDto, BookWithStats } from '@domain/core';
 
 export interface BookRepositoryInterface {
   create(bookData: CreateBookDto): Promise<BookPrimitive>;
   findById(id: string): Promise<BookPrimitive | null>;
   findAll(filters: GetBooksDto): Promise<{ books: BookPrimitive[]; total: number; page: number; limit: number }>;
+  findAllWithStats(filters: GetBooksDto): Promise<{ books: BookWithStats[]; total: number; page: number; limit: number }>;
   update(id: string, updateData: UpdateBookDto): Promise<BookPrimitive | null>;
   delete(id: string): Promise<boolean>;
-  getTopRated(limit: number): Promise<BookPrimitive[]>;
-  updateRatingStats(bookId: string, newAvgRating: number, newReviewCount: number): Promise<void>;
+  getTopRated(limit: number): Promise<BookWithStats[]>;
+  exists(id: string): Promise<boolean>;
+  seedBooks(seedData: any[]): Promise<{ message: string; count: number }>;
+  countDocuments(): Promise<number>;
 }
 
 export class BookRepository implements BookRepositoryInterface {
+  constructor(private readonly bookModel: Model<BookMongoDocument>) {}
+
   async create(bookData: CreateBookDto): Promise<BookPrimitive> {
-    const book = new BookModel({
+    const book = new this.bookModel({
       title: bookData.title,
       author: bookData.author,
       isbn: bookData.isbn,
       publishedYear: bookData.publishedYear,
-      description: bookData.description || '',
-      avgRating: 0,
-      reviewCount: 0
+      description: bookData.description || ''
     });
 
     const savedBook = await book.save();
@@ -28,7 +32,7 @@ export class BookRepository implements BookRepositoryInterface {
   }
 
   async findById(id: string): Promise<BookPrimitive | null> {
-    const book = await BookModel.findById(id);
+    const book = await this.bookModel.findById(id);
     return book ? this.toBookPrimitive(book) : null;
   }
 
@@ -44,7 +48,12 @@ export class BookRepository implements BookRepositoryInterface {
       sortOrder = 'desc'
     } = filters;
 
-    // Build query
+    // If rating filters are needed, use aggregation
+    if (minRating || sortBy === 'avgRating') {
+      return this.findAllWithStats(filters);
+    }
+
+    // Build query for simple cases
     const query: any = {};
 
     if (search) {
@@ -59,10 +68,6 @@ export class BookRepository implements BookRepositoryInterface {
       query.publishedYear = publishedYear;
     }
 
-    if (minRating) {
-      query.avgRating = { $gte: minRating };
-    }
-
     // Build sort
     const sort: any = {};
     const sortDirection = sortOrder === 'asc' ? 1 : -1;
@@ -72,16 +77,108 @@ export class BookRepository implements BookRepositoryInterface {
     const skip = (page - 1) * limit;
     
     const [books, total] = await Promise.all([
-      BookModel.find(query)
+      this.bookModel.find(query)
         .sort(sort)
         .skip(skip)
         .limit(limit)
         .lean(),
-      BookModel.countDocuments(query)
+      this.bookModel.countDocuments(query)
     ]);
 
     return {
       books: books.map(book => this.toBookPrimitive(book)),
+      total,
+      page,
+      limit
+    };
+  }
+
+  async findAllWithStats(filters: GetBooksDto): Promise<{ books: BookWithStats[]; total: number; page: number; limit: number }> {
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      author,
+      publishedYear,
+      minRating,
+      sortBy = 'createdAt',
+      sortOrder = 'desc'
+    } = filters;
+
+    // Build initial match query
+    const query: any = {};
+
+    if (search) {
+      query.$text = { $search: search };
+    }
+
+    if (author) {
+      query.author = { $regex: author, $options: 'i' };
+    }
+
+    if (publishedYear) {
+      query.publishedYear = publishedYear;
+    }
+
+    // Aggregation pipeline
+    const pipeline: any[] = [
+      { $match: query },
+      {
+        $lookup: {
+          from: 'reviews',
+          let: { bookId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ['$bookId', { $toString: '$$bookId' }]
+                }
+              }
+            }
+          ],
+          as: 'reviews'
+        }
+      },
+      {
+        $addFields: {
+          avgRating: {
+            $cond: {
+              if: { $gt: [{ $size: '$reviews' }, 0] },
+              then: { $avg: '$reviews.rating' },
+              else: 0
+            }
+          },
+          reviewCount: { $size: '$reviews' }
+        }
+      }
+    ];
+
+    if (minRating) {
+      pipeline.push({ $match: { avgRating: { $gte: minRating } } });
+    }
+
+    // Sort
+    const sort: any = {};
+    const sortDirection = sortOrder === 'asc' ? 1 : -1;
+    sort[sortBy] = sortDirection;
+    pipeline.push({ $sort: sort });
+
+    // Get total count
+    const countPipeline = [...pipeline, { $count: 'total' }];
+    const countResult = await this.bookModel.aggregate(countPipeline);
+    const total = countResult[0]?.total || 0;
+
+    // Add pagination
+    pipeline.push({ $skip: (page - 1) * limit });
+    pipeline.push({ $limit: limit });
+
+    // Remove reviews array from final result
+    pipeline.push({ $project: { reviews: 0 } });
+
+    const books = await this.bookModel.aggregate(pipeline);
+
+    return {
+      books: books.map(book => this.toBookWithStats(book)),
       total,
       page,
       limit
@@ -97,7 +194,7 @@ export class BookRepository implements BookRepositoryInterface {
     if (updateData.publishedYear !== undefined) updateFields.publishedYear = updateData.publishedYear;
     if (updateData.description !== undefined) updateFields.description = updateData.description;
 
-    const book = await BookModel.findByIdAndUpdate(
+    const book = await this.bookModel.findByIdAndUpdate(
       id,
       updateFields,
       { new: true, runValidators: true }
@@ -107,24 +204,85 @@ export class BookRepository implements BookRepositoryInterface {
   }
 
   async delete(id: string): Promise<boolean> {
-    const result = await BookModel.findByIdAndDelete(id);
+    const result = await this.bookModel.findByIdAndDelete(id);
     return result !== null;
   }
 
-  async getTopRated(limit: number = 10): Promise<BookPrimitive[]> {
-    const books = await BookModel.find({ reviewCount: { $gt: 0 } })
-      .sort({ avgRating: -1, reviewCount: -1 })
-      .limit(limit)
-      .lean();
+  async getTopRated(limit: number = 10): Promise<BookWithStats[]> {
+    const pipeline = [
+      {
+        $lookup: {
+          from: 'reviews',
+          let: { bookId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $eq: ['$bookId', { $toString: '$$bookId' }]
+                }
+              }
+            }
+          ],
+          as: 'reviews'
+        }
+      },
+      {
+        $addFields: {
+          avgRating: {
+            $cond: {
+              if: { $gt: [{ $size: '$reviews' }, 0] },
+              then: { $avg: '$reviews.rating' },
+              else: 0
+            }
+          },
+          reviewCount: { $size: '$reviews' }
+        }
+      },
+      {
+        $match: { reviewCount: { $gt: 0 } }
+      },
+      {
+        $sort: { avgRating: -1 as const, reviewCount: -1 as const }
+      },
+      {
+        $limit: limit
+      },
+      {
+        $project: { reviews: 0 }
+      }
+    ];
 
-    return books.map(book => this.toBookPrimitive(book));
+    const books = await this.bookModel.aggregate(pipeline);
+    return books.map(book => this.toBookWithStats(book));
   }
 
-  async updateRatingStats(bookId: string, newAvgRating: number, newReviewCount: number): Promise<void> {
-    await BookModel.findByIdAndUpdate(bookId, {
-      avgRating: Math.round(newAvgRating * 10) / 10, // Round to 1 decimal place
-      reviewCount: newReviewCount
-    });
+  async exists(id: string): Promise<boolean> {
+    const book = await this.bookModel.findById(id).select('_id');
+    return book !== null;
+  }
+
+  async seedBooks(seedData: any[]): Promise<{ message: string; count: number }> {
+    // Check if books already exist
+    const existingBooks = await this.countDocuments();
+    
+    if (existingBooks > 0) {
+      return {
+        message: `Database already has ${existingBooks} books. Skipping seed.`,
+        count: existingBooks
+      };
+    }
+
+    // Insert seed data
+    const books = await this.bookModel.insertMany(seedData);
+    
+    return {
+      message: `Successfully seeded ${books.length} books to the database.`,
+      count: books.length
+    };
+  }
+
+  async countDocuments(): Promise<number> {
+    return await this.bookModel.countDocuments();
   }
 
   private toBookPrimitive(bookDoc: any): BookPrimitive {
@@ -135,8 +293,21 @@ export class BookRepository implements BookRepositoryInterface {
       isbn: bookDoc.isbn,
       publishedYear: bookDoc.publishedYear,
       description: bookDoc.description,
-      avgRating: bookDoc.avgRating,
-      reviewCount: bookDoc.reviewCount,
+      createdAt: bookDoc.createdAt,
+      updatedAt: bookDoc.updatedAt
+    };
+  }
+
+  private toBookWithStats(bookDoc: any): BookWithStats {
+    return {
+      _id: bookDoc._id.toString(),
+      title: bookDoc.title,
+      author: bookDoc.author,
+      isbn: bookDoc.isbn,
+      publishedYear: bookDoc.publishedYear,
+      description: bookDoc.description,
+      avgRating: Math.round((bookDoc.avgRating || 0) * 10) / 10,
+      reviewCount: bookDoc.reviewCount || 0,
       createdAt: bookDoc.createdAt,
       updatedAt: bookDoc.updatedAt
     };

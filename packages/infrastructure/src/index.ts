@@ -7,6 +7,7 @@ export * from './schemas/ReviewSchema';
 
 // Repositories
 export * from './repositories/BookRepository';
+export * from './repositories/ReviewRepository';
 
 // Seeds
 export * from './seeds/bookSeeds'; 
