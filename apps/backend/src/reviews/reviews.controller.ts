@@ -15,9 +15,9 @@ import {
   BadRequestException
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBody } from '@nestjs/swagger';
-import { ReviewsService } from './reviews.service';
 import { CreateReviewDto, UpdateReviewDto } from '@domain/core';
 import { MongoExceptionFilter } from '../common/filters/mongo-exception.filter';
+import { ReviewsService } from './reviews.service';
 
 @ApiTags('reviews')
 @Controller('reviews')
