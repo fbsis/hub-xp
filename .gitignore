@@ -1,3 +1,9 @@
 node_modules
 
 apps/backend/dist/
+
+packages/domain/dist/
+
+.env
+
+packages/domain/coverage/
