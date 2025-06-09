@@ -1,4 +1,5 @@
 import React from 'react';
+import { clsx } from 'clsx';
 
 // Using primitive types from domain for simplicity
 interface BookCardProps {
@@ -12,12 +13,18 @@ interface BookCardProps {
     reviewCount?: number;
   };
   onClick?: () => void;
+  className?: string;
 }
 
-export function BookCard({ book, onClick }: BookCardProps) {
+export function BookCard({ book, onClick, className = "" }: BookCardProps) {
+  const cardClasses = clsx(
+    'bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 p-6 cursor-pointer border border-gray-200',
+    className
+  );
+
   return (
     <div 
-      className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 p-6 cursor-pointer border border-gray-200"
+      className={cardClasses}
       onClick={onClick}
     >
       <h3 className="text-lg font-semibold text-gray-900 mb-2">

@@ -1,4 +1,5 @@
 import React from 'react';
+import { clsx } from 'clsx';
 
 interface ButtonProps {
   type?: 'button' | 'submit' | 'reset';
@@ -6,6 +7,7 @@ interface ButtonProps {
   disabled?: boolean;
   children: React.ReactNode;
   variant?: 'primary' | 'secondary';
+  className?: string;
 }
 
 export function Button({ 
@@ -13,14 +15,34 @@ export function Button({
   onClick, 
   disabled = false, 
   children, 
-  variant = 'primary' 
+  variant = 'primary',
+  className = ""
 }: ButtonProps) {
-  const baseClasses = "px-5 py-2.5 border-0 rounded text-sm font-medium transition-opacity duration-200";
-  const disabledClasses = disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer";
-  
-  const variantClasses = {
-    primary: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-300",
-    secondary: "bg-gray-600 text-white hover:bg-gray-700 focus:ring-2 focus:ring-gray-300"
+  const buttonClasses = clsx(
+    // Base styles
+    'px-5 py-2.5 rounded text-sm font-medium transition-all duration-200 border-none',
+    // Cursor and disabled states
+    disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer',
+    // Variant styles
+    variant === 'primary' 
+      ? 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-300'
+      : 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-2 focus:ring-gray-300',
+    // Custom classes
+    className
+  );
+
+  // Fallback inline styles
+  const fallbackStyles: React.CSSProperties = {
+    padding: '10px 20px',
+    border: 'none',
+    borderRadius: '6px',
+    fontSize: '14px',
+    fontWeight: '500',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    opacity: disabled ? 0.6 : 1,
+    transition: 'background-color 0.2s, opacity 0.2s',
+    backgroundColor: variant === 'primary' ? '#2563eb' : '#4b5563',
+    color: '#ffffff'
   };
 
   return (
@@ -28,7 +50,18 @@ export function Button({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`${baseClasses} ${variantClasses[variant]} ${disabledClasses}`}
+      className={buttonClasses}
+      style={fallbackStyles}
+      onMouseEnter={(e) => {
+        if (!disabled) {
+          e.currentTarget.style.backgroundColor = variant === 'primary' ? '#1d4ed8' : '#374151';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!disabled) {
+          e.currentTarget.style.backgroundColor = variant === 'primary' ? '#2563eb' : '#4b5563';
+        }
+      }}
     >
       {children}
     </button>

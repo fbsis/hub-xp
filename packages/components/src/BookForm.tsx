@@ -95,8 +95,8 @@ export function BookForm({ onSubmit, isLoading = false }: BookFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div style={{marginBottom: '10px'}}>
+    <form onSubmit={handleSubmit} className="w-full space-y-5">
+      <div className="w-full mb-5">
         <Label htmlFor="title" required>Title</Label>
         <Input
           type="text"
@@ -104,11 +104,14 @@ export function BookForm({ onSubmit, isLoading = false }: BookFormProps) {
           name="title"
           value={formData.title}
           onChange={handleChange}
+          className={errors.title ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}
         />
-        {errors.title && <p style={{color: 'red', margin: '5px 0 0 0'}}>{errors.title}</p>}
+        {errors.title && (
+          <p className="text-red-600 text-sm mt-1 mb-0">{errors.title}</p>
+        )}
       </div>
 
-      <div style={{marginBottom: '10px'}}>
+      <div className="w-full mb-5">
         <Label htmlFor="author" required>Author</Label>
         <Input
           type="text"
@@ -116,11 +119,14 @@ export function BookForm({ onSubmit, isLoading = false }: BookFormProps) {
           name="author"
           value={formData.author}
           onChange={handleChange}
+          className={errors.author ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}
         />
-        {errors.author && <p style={{color: 'red', margin: '5px 0 0 0'}}>{errors.author}</p>}
+        {errors.author && (
+          <p className="text-red-600 text-sm mt-1 mb-0">{errors.author}</p>
+        )}
       </div>
 
-      <div style={{marginBottom: '10px'}}>
+      <div className="w-full mb-5">
         <Label htmlFor="isbn">ISBN</Label>
         <Input
           type="text"
@@ -128,11 +134,14 @@ export function BookForm({ onSubmit, isLoading = false }: BookFormProps) {
           name="isbn"
           value={formData.isbn}
           onChange={handleChange}
+          className={errors.isbn ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}
         />
-        {errors.isbn && <p style={{color: 'red', margin: '5px 0 0 0'}}>{errors.isbn}</p>}
+        {errors.isbn && (
+          <p className="text-red-600 text-sm mt-1 mb-0">{errors.isbn}</p>
+        )}
       </div>
 
-      <div style={{marginBottom: '10px'}}>
+      <div className="w-full mb-5">
         <Label htmlFor="publishedYear" required>Published Year</Label>
         <Input
           type="number"
@@ -140,28 +149,36 @@ export function BookForm({ onSubmit, isLoading = false }: BookFormProps) {
           name="publishedYear"
           value={formData.publishedYear}
           onChange={handleChange}
+          className={errors.publishedYear ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}
         />
-        {errors.publishedYear && <p style={{color: 'red', margin: '5px 0 0 0'}}>{errors.publishedYear}</p>}
+        {errors.publishedYear && (
+          <p className="text-red-600 text-sm mt-1 mb-0">{errors.publishedYear}</p>
+        )}
       </div>
 
-      <div style={{marginBottom: '10px'}}>
+      <div className="w-full mb-5">
         <Label htmlFor="description">Description</Label>
         <Textarea
           id="description"
           name="description"
           value={formData.description}
           onChange={handleChange}
+          className={errors.description ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : ''}
         />
-        {errors.description && <p style={{color: 'red', margin: '5px 0 0 0'}}>{errors.description}</p>}
+        {errors.description && (
+          <p className="text-red-600 text-sm mt-1 mb-0">{errors.description}</p>
+        )}
       </div>
 
-      <Button 
-        type="submit" 
-        disabled={isLoading}
-        variant="primary"
-      >
-        {isLoading ? 'Creating...' : 'Create Book'}
-      </Button>
+      <div className="w-full">
+        <Button 
+          type="submit" 
+          disabled={isLoading}
+          variant="primary"
+        >
+          {isLoading ? 'Creating...' : 'Create Book'}
+        </Button>
+      </div>
     </form>
   );
 } 
