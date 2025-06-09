@@ -17,29 +17,20 @@ export function Tabs({ items, defaultActiveKey }: TabsProps) {
   return (
     <div>
       {/* Tab Headers */}
-      <div style={{
-        borderBottom: '1px solid #ddd',
-        marginBottom: '20px'
-      }}>
-        <div style={{
-          display: 'flex',
-          gap: '0'
-        }}>
+      <div className="border-b border-gray-300 mb-5">
+        <div className="flex gap-0">
           {items.map((item) => (
             <button
               key={item.key}
               onClick={() => setActiveKey(item.key)}
-              style={{
-                padding: '12px 24px',
-                border: 'none',
-                background: 'none',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '500',
-                color: activeKey === item.key ? '#007bff' : '#666',
-                borderBottom: activeKey === item.key ? '2px solid #007bff' : '2px solid transparent',
-                transition: 'all 0.2s ease'
-              }}
+              className={`
+                px-6 py-3 border-none bg-transparent cursor-pointer text-sm font-medium
+                transition-all duration-200 border-b-2
+                ${activeKey === item.key 
+                  ? 'text-blue-600 border-blue-600' 
+                  : 'text-gray-600 border-transparent hover:text-blue-500'
+                }
+              `}
             >
               {item.label}
             </button>
@@ -52,9 +43,7 @@ export function Tabs({ items, defaultActiveKey }: TabsProps) {
         {items.map((item) => (
           <div
             key={item.key}
-            style={{
-              display: activeKey === item.key ? 'block' : 'none'
-            }}
+            className={activeKey === item.key ? 'block' : 'hidden'}
           >
             {item.content}
           </div>

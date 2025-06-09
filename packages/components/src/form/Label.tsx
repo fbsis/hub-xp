@@ -10,16 +10,10 @@ export function Label({ htmlFor, children, required = false }: LabelProps) {
   return (
     <label 
       htmlFor={htmlFor}
-      style={{
-        display: 'block',
-        marginBottom: '5px',
-        fontWeight: '500',
-        fontSize: '14px',
-        color: '#333'
-      }}
+      className="block mb-1.5 font-medium text-sm text-gray-800"
     >
       {children}
-      {required && <span style={{ color: 'red', marginLeft: '2px' }}>*</span>}
+      {required && <span className="text-red-500 ml-0.5">*</span>}
     </label>
   );
 } 

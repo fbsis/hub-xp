@@ -34,13 +34,7 @@ export function Input({
       required={required}
       disabled={disabled}
       readOnly={readOnly}
-      style={{
-        width: '100%',
-        padding: '8px',
-        border: '1px solid #ccc',
-        borderRadius: '4px',
-        fontSize: '14px'
-      }}
+      className="w-full px-2 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 disabled:bg-gray-100 disabled:cursor-not-allowed"
     />
   );
 } 

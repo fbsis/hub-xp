@@ -15,10 +15,10 @@ export function StarRating({
 }: StarRatingProps) {
   const [hoverRating, setHoverRating] = useState(0);
   
-  const sizes = {
-    small: '16px',
-    medium: '24px',
-    large: '32px'
+  const sizeClasses = {
+    small: 'text-base',
+    medium: 'text-xl',
+    large: 'text-3xl'
   };
 
   const handleClick = (rating: number) => {
@@ -40,7 +40,7 @@ export function StarRating({
   };
 
   return (
-    <div style={{ display: 'flex', gap: '2px' }}>
+    <div className="flex gap-0.5">
       {[1, 2, 3, 4, 5].map((star) => {
         const filled = star <= (hoverRating || value);
         
@@ -52,15 +52,12 @@ export function StarRating({
             onMouseEnter={() => handleMouseEnter(star)}
             onMouseLeave={handleMouseLeave}
             disabled={readonly}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: readonly ? 'default' : 'pointer',
-              fontSize: sizes[size],
-              color: filled ? '#ffc107' : '#e0e0e0',
-              padding: '2px',
-              transition: 'color 0.2s ease'
-            }}
+            className={`
+              bg-transparent border-none p-0.5 transition-colors duration-200
+              ${readonly ? 'cursor-default' : 'cursor-pointer'}
+              ${filled ? 'text-yellow-400' : 'text-gray-300'}
+              ${sizeClasses[size]}
+            `}
             title={`${star} star${star !== 1 ? 's' : ''}`}
           >
             ★
@@ -68,12 +65,7 @@ export function StarRating({
         );
       })}
       {value > 0 && (
-        <span style={{ 
-          marginLeft: '8px', 
-          fontSize: '14px', 
-          color: '#666',
-          alignSelf: 'center'
-        }}>
+        <span className="ml-2 text-sm text-gray-600 self-center">
           ({value}/5)
         </span>
       )}

@@ -15,25 +15,12 @@ export function Button({
   children, 
   variant = 'primary' 
 }: ButtonProps) {
-  const baseStyle = {
-    padding: '10px 20px',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: disabled ? 'not-allowed' : 'pointer',
-    fontSize: '14px',
-    fontWeight: '500',
-    opacity: disabled ? 0.6 : 1
-  };
-
-  const variantStyles = {
-    primary: {
-      backgroundColor: '#007bff',
-      color: 'white'
-    },
-    secondary: {
-      backgroundColor: '#6c757d',
-      color: 'white'
-    }
+  const baseClasses = "px-5 py-2.5 border-0 rounded text-sm font-medium transition-opacity duration-200";
+  const disabledClasses = disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer";
+  
+  const variantClasses = {
+    primary: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-300",
+    secondary: "bg-gray-600 text-white hover:bg-gray-700 focus:ring-2 focus:ring-gray-300"
   };
 
   return (
@@ -41,10 +28,7 @@ export function Button({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      style={{
-        ...baseStyle,
-        ...variantStyles[variant]
-      }}
+      className={`${baseClasses} ${variantClasses[variant]} ${disabledClasses}`}
     >
       {children}
     </button>

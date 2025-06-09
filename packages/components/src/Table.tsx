@@ -15,7 +15,7 @@ interface TableProps {
 export function Table({ columns, data, loading = false }: TableProps) {
   if (loading) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center' }}>
+      <div className="p-5 text-center">
         Loading...
       </div>
     );
@@ -23,29 +23,20 @@ export function Table({ columns, data, loading = false }: TableProps) {
 
   if (data.length === 0) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+      <div className="p-5 text-center text-gray-600">
         No data available
       </div>
     );
   }
 
   return (
-    <table style={{ 
-      width: '100%', 
-      borderCollapse: 'collapse',
-      border: '1px solid #ddd'
-    }}>
+    <table className="w-full border-collapse border border-gray-300">
       <thead>
-        <tr style={{ backgroundColor: '#f5f5f5' }}>
+        <tr className="bg-gray-100">
           {columns.map((column) => (
             <th
               key={column.key}
-              style={{
-                padding: '12px',
-                textAlign: 'left',
-                borderBottom: '1px solid #ddd',
-                fontWeight: '600'
-              }}
+              className="p-3 text-left border-b border-gray-300 font-semibold"
             >
               {column.title}
             </th>
@@ -56,17 +47,12 @@ export function Table({ columns, data, loading = false }: TableProps) {
         {data.map((record, index) => (
           <tr 
             key={index}
-            style={{
-              borderBottom: '1px solid #eee'
-            }}
+            className="border-b border-gray-200 hover:bg-gray-50"
           >
             {columns.map((column) => (
               <td
                 key={column.key}
-                style={{
-                  padding: '12px',
-                  borderBottom: '1px solid #eee'
-                }}
+                className="p-3 border-b border-gray-200"
               >
                 {column.render 
                   ? column.render(record[column.key], record)

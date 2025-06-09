@@ -5,92 +5,82 @@ import { Button } from './Button';
 
 describe('Button Component', () => {
   it('renders correctly with default props', () => {
-    render(<Button>Click me</Button>);
+    render(<Button>Test Button</Button>);
     const button = screen.getByRole('button');
     expect(button).toBeInTheDocument();
+    expect(button).toHaveTextContent('Test Button');
     expect(button).toHaveAttribute('type', 'button');
-    expect(button).toHaveTextContent('Click me');
   });
 
-  it('renders with custom type', () => {
-    render(<Button type="submit">Submit</Button>);
+  it('renders with type submit', () => {
+    render(<Button type="submit">Submit Button</Button>);
     const button = screen.getByRole('button');
     expect(button).toHaveAttribute('type', 'submit');
   });
 
-  it('calls onClick when clicked', async () => {
-    const user = userEvent.setup();
+  it('calls onClick when clicked', () => {
     const handleClick = jest.fn();
-    render(<Button onClick={handleClick}>Click me</Button>);
-    
+    render(<Button onClick={handleClick}>Click Me</Button>);
     const button = screen.getByRole('button');
-    await user.click(button);
     
+    fireEvent.click(button);
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
 
-  it('does not call onClick when disabled', async () => {
-    const user = userEvent.setup();
+  it('does not call onClick when disabled and clicked', () => {
     const handleClick = jest.fn();
-    render(<Button onClick={handleClick} disabled>Disabled</Button>);
-    
+    render(<Button onClick={handleClick} disabled>Disabled Button</Button>);
     const button = screen.getByRole('button');
-    await user.click(button);
     
+    fireEvent.click(button);
     expect(handleClick).not.toHaveBeenCalled();
   });
 
-  it('renders as disabled when disabled prop is true', () => {
+  it('is disabled when disabled prop is true', () => {
     render(<Button disabled>Disabled Button</Button>);
     const button = screen.getByRole('button');
     expect(button).toBeDisabled();
   });
 
-  it('renders with primary variant by default', () => {
-    render(<Button>Primary Button</Button>);
-    const button = screen.getByRole('button');
-    expect(button).toHaveStyle({
-      backgroundColor: '#007bff',
-      color: 'white'
-    });
-  });
-
-  it('renders with secondary variant', () => {
-    render(<Button variant="secondary">Secondary Button</Button>);
-    const button = screen.getByRole('button');
-    expect(button).toHaveStyle({
-      backgroundColor: '#6c757d',
-      color: 'white'
-    });
-  });
-
-  it('has correct base styling', () => {
-    render(<Button>Styled Button</Button>);
-    const button = screen.getByRole('button');
-    expect(button).toHaveStyle({
-      padding: '10px 20px',
-      borderRadius: '4px',
-      fontSize: '14px',
-      fontWeight: '500'
-    });
-  });
-
-  it('has correct cursor style when enabled', () => {
+  it('is not disabled by default', () => {
     render(<Button>Enabled Button</Button>);
     const button = screen.getByRole('button');
-    expect(button).toHaveStyle({
-      cursor: 'pointer',
-      opacity: 1
-    });
+    expect(button).not.toBeDisabled();
   });
 
-  it('has correct cursor style when disabled', () => {
+  it('renders with primary variant classes by default', () => {
+    render(<Button>Primary Button</Button>);
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass('bg-blue-600', 'text-white');
+  });
+
+  it('renders with secondary variant classes', () => {
+    render(<Button variant="secondary">Secondary Button</Button>);
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass('bg-gray-600', 'text-white');
+  });
+
+  it('has correct base Tailwind classes', () => {
+    render(<Button>Styled Button</Button>);
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass(
+      'px-5', 'py-2.5', 'border-0', 'rounded', 
+      'text-sm', 'font-medium', 'transition-opacity', 'duration-200'
+    );
+  });
+
+  it('has correct cursor classes when enabled', () => {
+    render(<Button>Enabled Button</Button>);
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass('cursor-pointer');
+    expect(button).not.toHaveClass('opacity-60', 'cursor-not-allowed');
+  });
+
+  it('has correct cursor classes when disabled', () => {
     render(<Button disabled>Disabled Button</Button>);
     const button = screen.getByRole('button');
-    expect(button).toHaveStyle({
-      cursor: 'not-allowed',
-      opacity: 0.6
-    });
+    expect(button).toHaveClass('opacity-60', 'cursor-not-allowed');
+    expect(button).not.toHaveClass('cursor-pointer');
   });
 
   it('renders children correctly', () => {
@@ -119,10 +109,25 @@ describe('Button Component', () => {
     const button = screen.getByRole('button');
     expect(button).toHaveAttribute('type', 'submit');
     expect(button).toHaveTextContent('Submit Form');
-    expect(button).toHaveStyle({
-      backgroundColor: '#6c757d',
-      color: 'white'
-    });
+    expect(button).toHaveClass('bg-gray-600', 'text-white');
     expect(button).not.toBeDisabled();
+  });
+
+  it('applies focus ring classes for accessibility', () => {
+    render(<Button variant="primary">Focus Test</Button>);
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass('focus:ring-2', 'focus:ring-blue-300');
+  });
+
+  it('applies hover classes for primary variant', () => {
+    render(<Button variant="primary">Hover Test</Button>);
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass('hover:bg-blue-700');
+  });
+
+  it('applies hover classes for secondary variant', () => {
+    render(<Button variant="secondary">Hover Test</Button>);
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass('hover:bg-gray-700');
   });
 }); 
