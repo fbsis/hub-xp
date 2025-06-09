@@ -17,3 +17,7 @@ apps/backend/coverage/
 packages/test-utils/dist/
 
 packages/components/dist/
+
+apps/backend/test/coverage/
+
+packages/components/coverage/
