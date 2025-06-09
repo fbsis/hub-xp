@@ -15,7 +15,7 @@ import {
   BadRequestException
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBody } from '@nestjs/swagger';
-import { CreateReviewDto, UpdateReviewDto } from '@domain/core';
+import { CreateReviewDto, UpdateReviewDto, ReviewMapper } from '@domain/core';
 import { MongoExceptionFilter } from '../common/filters/mongo-exception.filter';
 import { ReviewsService } from './reviews.service';
 
@@ -47,7 +47,9 @@ export class ReviewsController {
   @ApiResponse({ status: 404, description: 'Book not found' })
   async create(@Body(ValidationPipe) createReviewDto: CreateReviewDto) {
     try {
-      return await this.reviewsService.create(createReviewDto);
+      // Convert DTO to domain entity
+      const reviewEntity = ReviewMapper.fromCreateDto(createReviewDto);
+      return await this.reviewsService.create(reviewEntity);
     } catch (error) {
       throw new BadRequestException(error.message);
     }
@@ -99,7 +101,9 @@ export class ReviewsController {
     @Body(ValidationPipe) updateReviewDto: UpdateReviewDto
   ) {
     try {
-      const review = await this.reviewsService.update(id, updateReviewDto);
+      // Convert DTO to domain entity (partial)
+      const reviewEntity = ReviewMapper.fromUpdateDto(updateReviewDto);
+      const review = await this.reviewsService.update(id, reviewEntity);
       if (!review) {
         throw new NotFoundException(`Review with ID ${id} not found`);
       }

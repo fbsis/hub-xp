@@ -1,13 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import { CreateBookDto, UpdateBookDto, GetBooksDto, BookPrimitive, BookWithStats } from '@domain/core';
+import { 
+  BookPrimitive, 
+  BookWithStats, 
+  GetBooksDto, 
+  Book,
+  BookMapper 
+} from '@domain/core';
 import { BookRepository, bookSeedData } from '@infrastructure/core';
 
 @Injectable()
 export class BooksService {
   constructor(private readonly bookRepository: BookRepository) {}
 
-  async create(createBookDto: CreateBookDto): Promise<BookPrimitive> {
-    return await this.bookRepository.create(createBookDto);
+  async create(bookData: Omit<Book, '_id' | 'createdAt' | 'updatedAt'>): Promise<BookPrimitive> {
+    // Convert domain entity to DTO for repository
+    const createDto = BookMapper.toCreateDto(bookData);
+    return await this.bookRepository.create(createDto);
   }
 
   async seedDatabase(): Promise<{ message: string; count: number }> {
@@ -28,8 +36,10 @@ export class BooksService {
     return await this.bookRepository.findById(id);
   }
 
-  async update(id: string, updateBookDto: UpdateBookDto): Promise<BookPrimitive | null> {
-    return await this.bookRepository.update(id, updateBookDto);
+  async update(id: string, bookData: Partial<Omit<Book, '_id' | 'createdAt' | 'updatedAt'>>): Promise<BookPrimitive | null> {
+    // Convert domain entity to DTO for repository
+    const updateDto = BookMapper.toUpdateDto(bookData);
+    return await this.bookRepository.update(id, updateDto);
   }
 
   async remove(id: string): Promise<boolean> {

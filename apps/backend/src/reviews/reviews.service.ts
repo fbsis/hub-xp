@@ -1,5 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateReviewDto, UpdateReviewDto, ReviewPrimitive } from '@domain/core';
+import { 
+  ReviewPrimitive, 
+  Review, 
+  ReviewMapper 
+} from '@domain/core';
 import { ReviewRepository, BookRepository } from '@infrastructure/core';
 
 @Injectable()
@@ -9,14 +13,16 @@ export class ReviewsService {
     private readonly bookRepository: BookRepository
   ) {}
 
-  async create(createReviewDto: CreateReviewDto): Promise<ReviewPrimitive> {
+  async create(reviewData: Omit<Review, '_id' | 'createdAt' | 'updatedAt'>): Promise<ReviewPrimitive> {
     // First check if the book exists
-    const bookExists = await this.bookRepository.exists(createReviewDto.bookId);
+    const bookExists = await this.bookRepository.exists(reviewData.bookId.getValue());
     if (!bookExists) {
-      throw new NotFoundException(`Book with ID ${createReviewDto.bookId} not found`);
+      throw new NotFoundException(`Book with ID ${reviewData.bookId.getValue()} not found`);
     }
 
-    return await this.reviewRepository.create(createReviewDto);
+    // Convert domain entity to DTO for repository
+    const createDto = ReviewMapper.toCreateDto(reviewData);
+    return await this.reviewRepository.create(createDto);
   }
 
   async findAll(filters: any): Promise<{ reviews: ReviewPrimitive[]; total: number; page: number; limit: number }> {
@@ -31,8 +37,10 @@ export class ReviewsService {
     return await this.reviewRepository.findById(id);
   }
 
-  async update(id: string, updateReviewDto: UpdateReviewDto): Promise<ReviewPrimitive | null> {
-    return await this.reviewRepository.update(id, updateReviewDto);
+  async update(id: string, reviewData: Partial<Omit<Review, '_id' | 'bookId' | 'createdAt' | 'updatedAt'>>): Promise<ReviewPrimitive | null> {
+    // Convert domain entity to DTO for repository
+    const updateDto = ReviewMapper.toUpdateDto(reviewData);
+    return await this.reviewRepository.update(id, updateDto);
   }
 
   async remove(id: string): Promise<boolean> {

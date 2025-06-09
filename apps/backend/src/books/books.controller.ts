@@ -16,7 +16,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBody } from '@nestjs/swagger';
 import { BooksService } from './books.service';
-import { CreateBookDto, UpdateBookDto, GetBooksDto } from '@domain/core';
+import { CreateBookDto, UpdateBookDto, GetBooksDto, BookMapper } from '@domain/core';
 import { MongoExceptionFilter } from '../common/filters/mongo-exception.filter';
 
 @ApiTags('books')
@@ -47,7 +47,9 @@ export class BooksController {
   @ApiResponse({ status: 400, description: 'Validation error' })
   async create(@Body(ValidationPipe) createBookDto: CreateBookDto) {
     try {
-      return await this.booksService.create(createBookDto);
+      // Convert DTO to domain entity
+      const bookEntity = BookMapper.fromCreateDto(createBookDto);
+      return await this.booksService.create(bookEntity);
     } catch (error) {
       throw new BadRequestException(error.message);
     }
@@ -113,7 +115,9 @@ export class BooksController {
     @Body(ValidationPipe) updateBookDto: UpdateBookDto
   ) {
     try {
-      const book = await this.booksService.update(id, updateBookDto);
+      // Convert DTO to domain entity (partial)
+      const bookEntity = BookMapper.fromUpdateDto(updateBookDto);
+      const book = await this.booksService.update(id, bookEntity);
       if (!book) {
         throw new NotFoundException(`Book with ID ${id} not found`);
       }
