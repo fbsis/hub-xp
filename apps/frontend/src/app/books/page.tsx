@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Tabs, BookCard } from "@components/ui";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface Book {
   _id: string;
@@ -50,6 +51,7 @@ async function fetchTopBooks(): Promise<BookWithStats[]> {
 }
 
 export default function BooksPage() {
+  const router = useRouter();
   const [selectedBook, setSelectedBook] = useState<string | null>(null);
   
   const { data: allBooks = [], isLoading: loadingAll, error: errorAll } = useQuery({
@@ -64,9 +66,7 @@ export default function BooksPage() {
 
   // Handle book click to add review
   const handleBookClick = (bookId: string) => {
-    setSelectedBook(bookId);
-    // You can implement a modal or redirect to review page here
-    alert(`Add review for book: ${bookId}`);
+    router.push(`/books/${bookId}/review`);
   };
 
   // Top Books View Component
