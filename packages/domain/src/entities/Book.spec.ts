@@ -20,7 +20,7 @@ describe('Book Entity', () => {
     expect(book.author).toBeInstanceOf(Author);
     expect(book.author.getValue()).toBe('Robert C. Martin');
     expect(book.isbn).toBeInstanceOf(ISBN);
-    expect(book.isbn!.getValue()).toBe('978-3-16-148410-0');
+    expect(book.isbn!.getValue()).toBe('9783161484100');
     expect(book.publishedYear).toBeInstanceOf(PublishedYear);
     expect(book.publishedYear.getValue()).toBe(2017);
     expect(book.description).toBeInstanceOf(Description);

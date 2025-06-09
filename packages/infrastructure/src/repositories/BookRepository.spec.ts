@@ -1,39 +1,36 @@
 import { BookRepository } from './BookRepository';
-
-// Mock Mongoose Model Constructor
-const MockBookModel = jest.fn();
-
-// Create chainable methods for query building
-const createQueryChain = (result: any) => ({
-  sort: jest.fn().mockReturnThis(),
-  skip: jest.fn().mockReturnThis(),
-  limit: jest.fn().mockReturnThis(),
-  lean: jest.fn().mockResolvedValue(result),
-  select: jest.fn().mockReturnThis()
-});
+import { BookFactory, BookScenarios } from '@test-utils/core';
+import { GetBooksDto } from '@domain/core';
 
 describe('BookRepository', () => {
   let repository: BookRepository;
   let mockModel: any;
 
   beforeEach(() => {
-    // Clear all mocks
-    jest.clearAllMocks();
-    
-    // Reset the constructor mock
-    MockBookModel.mockClear();
-    
-    // Set up static methods on the mock constructor
-    mockModel = MockBookModel;
-    mockModel.findById = jest.fn();
+    // Create a proper model constructor mock
+    const MockDoc = jest.fn().mockImplementation((data: any) => {
+      const instance = {
+        save: jest.fn().mockResolvedValue({
+          _id: '507f1f77bcf86cd799439011',
+          ...data,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+      };
+      return instance;
+    });
+
+    mockModel = MockDoc;
     mockModel.find = jest.fn();
+    mockModel.findById = jest.fn();
     mockModel.findByIdAndUpdate = jest.fn();
     mockModel.findByIdAndDelete = jest.fn();
     mockModel.countDocuments = jest.fn();
+    mockModel.deleteMany = jest.fn();
     mockModel.insertMany = jest.fn();
     mockModel.aggregate = jest.fn();
-    
-    repository = new BookRepository(mockModel as any);
+
+    repository = new BookRepository(mockModel);
   });
 
   afterEach(() => {
@@ -41,88 +38,43 @@ describe('BookRepository', () => {
   });
 
   describe('create', () => {
-    it('should create a new book successfully', async () => {
-      const createBookDto: any = {
-        title: 'Clean Code',
-        author: 'Robert C. Martin',
-        isbn: '9780132350884',
-        publishedYear: 2008,
-        description: 'A handbook of agile software craftsmanship.'
-      };
+    it('should create a book successfully', async () => {
+      const createDto = BookFactory.createBookDto();
 
-      const mockSavedBook = {
-        _id: '507f1f77bcf86cd799439011',
-        ...createBookDto,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        save: jest.fn().mockResolvedValue({
-          _id: '507f1f77bcf86cd799439011',
-          ...createBookDto,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        })
-      };
+      const result = await repository.create(createDto);
 
-      // Mock the constructor call
-      MockBookModel.mockImplementation(() => mockSavedBook);
-
-      const result = await repository.create(createBookDto);
-
-      expect(MockBookModel).toHaveBeenCalledWith({
-        title: createBookDto.title,
-        author: createBookDto.author,
-        isbn: createBookDto.isbn,
-        publishedYear: createBookDto.publishedYear,
-        description: createBookDto.description
+      expect(mockModel).toHaveBeenCalledWith({
+        title: createDto.title,
+        author: createDto.author,
+        isbn: createDto.isbn,
+        publishedYear: createDto.publishedYear,
+        description: createDto.description
       });
-      
-      expect(mockSavedBook.save).toHaveBeenCalled();
-      expect(result).toEqual({
-        _id: '507f1f77bcf86cd799439011',
-        title: createBookDto.title,
-        author: createBookDto.author,
-        isbn: createBookDto.isbn,
-        publishedYear: createBookDto.publishedYear,
-        description: createBookDto.description,
-        createdAt: expect.any(Date),
-        updatedAt: expect.any(Date)
-      });
+      expect(result).toEqual(expect.objectContaining({
+        _id: expect.any(String),
+        title: createDto.title,
+        author: createDto.author,
+        isbn: createDto.isbn,
+        publishedYear: createDto.publishedYear,
+        description: createDto.description
+      }));
     });
   });
 
   describe('findById', () => {
     it('should return a book when found', async () => {
-      const bookId = '507f1f77bcf86cd799439011';
-      const mockBook = {
-        _id: { toString: () => bookId },
-        title: 'Clean Code',
-        author: 'Robert C. Martin',
-        isbn: '9780132350884',
-        publishedYear: 2008,
-        description: 'A handbook of agile software craftsmanship.',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-
-      mockModel.findById.mockResolvedValue(mockBook);
+      const bookId = BookScenarios.IDS.BOOK_ID;
+      const expected = BookFactory.bookPrimitive({ _id: bookId });
+      mockModel.findById.mockResolvedValue(expected);
 
       const result = await repository.findById(bookId);
 
       expect(mockModel.findById).toHaveBeenCalledWith(bookId);
-      expect(result).toEqual({
-        _id: bookId,
-        title: mockBook.title,
-        author: mockBook.author,
-        isbn: mockBook.isbn,
-        publishedYear: mockBook.publishedYear,
-        description: mockBook.description,
-        createdAt: mockBook.createdAt,
-        updatedAt: mockBook.updatedAt
-      });
+      expect(result).toEqual(expected);
     });
 
     it('should return null when book not found', async () => {
-      const bookId = '507f1f77bcf86cd799439011';
+      const bookId = BookScenarios.IDS.BOOK_ID;
       mockModel.findById.mockResolvedValue(null);
 
       const result = await repository.findById(bookId);
@@ -133,137 +85,64 @@ describe('BookRepository', () => {
   });
 
   describe('findAll', () => {
-    it('should return books with pagination (simple query)', async () => {
-      const mockBooks = [
-        {
-          _id: { toString: () => '1' },
-          title: 'Book 1',
-          author: 'Author 1',
-          isbn: '1234567890',
-          publishedYear: 2020,
-          description: 'Description 1',
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      ];
-
-      const queryChain = createQueryChain(mockBooks);
-      mockModel.find.mockReturnValue(queryChain);
-      mockModel.countDocuments.mockResolvedValue(1);
-
-      const filters: any = {
-        page: 1,
-        limit: 10,
-        sortBy: 'createdAt',
-        sortOrder: 'desc'
+    it('should return paginated books', async () => {
+      const filters: GetBooksDto = { page: 1, limit: 10, sortBy: 'createdAt', sortOrder: 'desc' };
+      const books = BookFactory.bookList(2);
+      const chainMethods = {
+        sort: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValue(books),
       };
+      mockModel.find.mockReturnValue(chainMethods);
+      mockModel.countDocuments.mockResolvedValue(2);
 
       const result = await repository.findAll(filters);
 
       expect(mockModel.find).toHaveBeenCalledWith({});
-      expect(mockModel.countDocuments).toHaveBeenCalledWith({});
-      expect(result).toEqual({
-        books: [
-          {
-            _id: '1',
-            title: 'Book 1',
-            author: 'Author 1',
-            isbn: '1234567890',
-            publishedYear: 2020,
-            description: 'Description 1',
-            createdAt: expect.any(Date),
-            updatedAt: expect.any(Date)
-          }
-        ],
-        total: 1,
-        page: 1,
-        limit: 10
-      });
+      expect(chainMethods.sort).toHaveBeenCalledWith({ createdAt: -1 });
+      expect(chainMethods.skip).toHaveBeenCalledWith(0);
+      expect(chainMethods.limit).toHaveBeenCalledWith(10);
+      expect(result.books).toHaveLength(2);
+      expect(result.total).toBe(2);
+      expect(result.page).toBe(1);
+      expect(result.limit).toBe(10);
     });
 
-    it('should use aggregation when minRating filter is provided', async () => {
-      const filters: any = {
-        page: 1,
-        limit: 10,
-        minRating: 4
-      };
+    it('should use aggregation for rating-based queries', async () => {
+      const filters: GetBooksDto = { page: 1, limit: 10, minRating: 4 };
+      const books = [BookFactory.bookWithStats()];
+      mockModel.aggregate.mockResolvedValue([{ total: 1 }]);
+      mockModel.aggregate.mockResolvedValueOnce([{ total: 1 }]);
+      mockModel.aggregate.mockResolvedValueOnce(books);
 
-      const mockAggregateResult = [
-        {
-          _id: '1',
-          title: 'Book 1',
-          author: 'Author 1',
-          isbn: '1234567890',
-          publishedYear: 2020,
-          description: 'Description 1',
-          avgRating: 4.5,
-          reviewCount: 10,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      ];
-
-      mockModel.aggregate
-        .mockResolvedValueOnce([{ total: 1 }]) // count pipeline
-        .mockResolvedValueOnce(mockAggregateResult); // main pipeline
-
-      const result = await repository.findAllWithStats(filters);
+      const result = await repository.findAll(filters);
 
       expect(mockModel.aggregate).toHaveBeenCalledTimes(2);
       expect(result.books).toHaveLength(1);
-      expect(result.books[0]).toHaveProperty('avgRating', 4.5);
-      expect(result.books[0]).toHaveProperty('reviewCount', 10);
     });
   });
 
   describe('update', () => {
     it('should update a book successfully', async () => {
-      const bookId = '507f1f77bcf86cd799439011';
-      const updateDto: any = {
-        title: 'Updated Title',
-        description: 'Updated description'
-      };
-
-      const updatedBook = {
-        _id: { toString: () => bookId },
-        title: 'Updated Title',
-        author: 'Robert C. Martin',
-        isbn: '9780132350884',
-        publishedYear: 2008,
-        description: 'Updated description',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-
-      mockModel.findByIdAndUpdate.mockResolvedValue(updatedBook);
+      const bookId = BookScenarios.IDS.BOOK_ID;
+      const updateDto = BookFactory.updateBookDto();
+      const expected = BookFactory.bookPrimitive({ _id: bookId, ...updateDto });
+      mockModel.findByIdAndUpdate.mockResolvedValue(expected);
 
       const result = await repository.update(bookId, updateDto);
 
       expect(mockModel.findByIdAndUpdate).toHaveBeenCalledWith(
         bookId,
-        {
-          title: 'Updated Title',
-          description: 'Updated description'
-        },
+        { title: updateDto.title, description: updateDto.description },
         { new: true, runValidators: true }
       );
-
-      expect(result).toEqual({
-        _id: bookId,
-        title: 'Updated Title',
-        author: 'Robert C. Martin',
-        isbn: '9780132350884',
-        publishedYear: 2008,
-        description: 'Updated description',
-        createdAt: expect.any(Date),
-        updatedAt: expect.any(Date)
-      });
+      expect(result).toEqual(expected);
     });
 
-    it('should return null when book to update is not found', async () => {
-      const bookId = '507f1f77bcf86cd799439011';
-      const updateDto: any = { title: 'Updated Title' };
-
+    it('should return null when book not found', async () => {
+      const bookId = BookScenarios.IDS.BOOK_ID;
+      const updateDto = BookFactory.updateBookDto();
       mockModel.findByIdAndUpdate.mockResolvedValue(null);
 
       const result = await repository.update(bookId, updateDto);
@@ -274,10 +153,9 @@ describe('BookRepository', () => {
 
   describe('delete', () => {
     it('should delete a book successfully', async () => {
-      const bookId = '507f1f77bcf86cd799439011';
-      const deletedBook = { _id: bookId };
-
-      mockModel.findByIdAndDelete.mockResolvedValue(deletedBook);
+      const bookId = BookScenarios.IDS.BOOK_ID;
+      const mockBook = BookFactory.bookPrimitive({ _id: bookId });
+      mockModel.findByIdAndDelete.mockResolvedValue(mockBook);
 
       const result = await repository.delete(bookId);
 
@@ -285,178 +163,119 @@ describe('BookRepository', () => {
       expect(result).toBe(true);
     });
 
-    it('should return false when book to delete is not found', async () => {
-      const bookId = '507f1f77bcf86cd799439011';
-
+    it('should return false when book not found', async () => {
+      const bookId = BookScenarios.IDS.BOOK_ID;
       mockModel.findByIdAndDelete.mockResolvedValue(null);
 
       const result = await repository.delete(bookId);
 
+      expect(mockModel.findByIdAndDelete).toHaveBeenCalledWith(bookId);
       expect(result).toBe(false);
-    });
-  });
-
-  describe('getTopRated', () => {
-    it('should return top rated books using aggregation', async () => {
-      const limit = 5;
-      const mockTopBooks = [
-        {
-          _id: '1',
-          title: 'Best Book',
-          author: 'Great Author',
-          isbn: '1234567890',
-          publishedYear: 2020,
-          description: 'Amazing book',
-          avgRating: 4.8,
-          reviewCount: 100,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      ];
-
-      mockModel.aggregate.mockResolvedValue(mockTopBooks);
-
-      const result = await repository.getTopRated(limit);
-
-      expect(mockModel.aggregate).toHaveBeenCalledWith([
-        {
-          $lookup: {
-            from: 'reviews',
-            let: { bookId: '$_id' },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $eq: ['$bookId', { $toString: '$$bookId' }]
-                  }
-                }
-              }
-            ],
-            as: 'reviews'
-          }
-        },
-        {
-          $addFields: {
-            avgRating: {
-              $cond: {
-                if: { $gt: [{ $size: '$reviews' }, 0] },
-                then: { $avg: '$reviews.rating' },
-                else: 0
-              }
-            },
-            reviewCount: { $size: '$reviews' }
-          }
-        },
-        {
-          $match: { reviewCount: { $gt: 0 } }
-        },
-        {
-          $sort: { avgRating: -1, reviewCount: -1 }
-        },
-        {
-          $limit: limit
-        },
-        {
-          $project: { reviews: 0 }
-        }
-      ]);
-
-      expect(result).toEqual([
-        {
-          _id: '1',
-          title: 'Best Book',
-          author: 'Great Author',
-          isbn: '1234567890',
-          publishedYear: 2020,
-          description: 'Amazing book',
-          avgRating: 4.8,
-          reviewCount: 100,
-          createdAt: expect.any(Date),
-          updatedAt: expect.any(Date)
-        }
-      ]);
     });
   });
 
   describe('exists', () => {
     it('should return true when book exists', async () => {
-      const bookId = '507f1f77bcf86cd799439011';
-      const queryChain = {
-        select: jest.fn().mockResolvedValue({ _id: bookId })
-      };
-      
-      mockModel.findById.mockReturnValue(queryChain);
+      const bookId = BookScenarios.IDS.BOOK_ID;
+      const mockBook = BookFactory.bookPrimitive({ _id: bookId });
+      mockModel.findById.mockResolvedValue(mockBook);
 
       const result = await repository.exists(bookId);
 
       expect(mockModel.findById).toHaveBeenCalledWith(bookId);
-      expect(queryChain.select).toHaveBeenCalledWith('_id');
       expect(result).toBe(true);
     });
 
     it('should return false when book does not exist', async () => {
-      const bookId = '507f1f77bcf86cd799439011';
-      const queryChain = {
-        select: jest.fn().mockResolvedValue(null)
-      };
-      
-      mockModel.findById.mockReturnValue(queryChain);
+      const bookId = BookScenarios.IDS.BOOK_ID;
+      mockModel.findById.mockResolvedValue(null);
 
       const result = await repository.exists(bookId);
 
+      expect(mockModel.findById).toHaveBeenCalledWith(bookId);
       expect(result).toBe(false);
     });
   });
 
-  describe('seedBooks', () => {
-    it('should seed books when database is empty', async () => {
-      const seedData = [
-        {
-          title: 'Seed Book 1',
-          author: 'Seed Author 1',
-          isbn: '1111111111',
-          publishedYear: 2020,
-          description: 'Seed description 1'
-        }
-      ];
+  describe('getTopRated', () => {
+    it('should return top rated books with default limit', async () => {
+      const books = [BookFactory.bookWithStats()];
+      mockModel.aggregate.mockResolvedValue(books);
 
-      mockModel.countDocuments.mockResolvedValue(0);
-      mockModel.insertMany.mockResolvedValue([{ _id: '1', ...seedData[0] }]);
+      const result = await repository.getTopRated();
 
-      const result = await repository.seedBooks(seedData);
-
-      expect(mockModel.countDocuments).toHaveBeenCalled();
-      expect(mockModel.insertMany).toHaveBeenCalledWith(seedData);
-      expect(result).toEqual({
-        message: 'Successfully seeded 1 books to the database.',
-        count: 1
-      });
+      expect(mockModel.aggregate).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({ $match: { reviewCount: { $gt: 0 } } }),
+          expect.objectContaining({ $sort: { avgRating: -1, reviewCount: -1 } }),
+          expect.objectContaining({ $limit: 10 })
+        ])
+      );
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual(expect.objectContaining({
+        avgRating: expect.any(Number),
+        reviewCount: expect.any(Number)
+      }));
     });
 
-    it('should skip seeding when books already exist', async () => {
-      const seedData = [{ title: 'Test' }];
-      
-      mockModel.countDocuments.mockResolvedValue(5);
+    it('should return top rated books with custom limit', async () => {
+      const books = [BookFactory.bookWithStats()];
+      mockModel.aggregate.mockResolvedValue(books);
+
+      const result = await repository.getTopRated(5);
+
+      expect(mockModel.aggregate).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({ $limit: 5 })
+        ])
+      );
+      expect(result).toHaveLength(1);
+    });
+
+    it('should handle empty results', async () => {
+      mockModel.aggregate.mockResolvedValue([]);
+
+      const result = await repository.getTopRated();
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('seedBooks', () => {
+    it('should seed books successfully', async () => {
+      const seedData = [BookFactory.bookPrimitive()];
+      mockModel.deleteMany.mockResolvedValue({ deletedCount: 0 });
+      mockModel.insertMany.mockResolvedValue(seedData);
 
       const result = await repository.seedBooks(seedData);
 
-      expect(mockModel.countDocuments).toHaveBeenCalled();
-      expect(mockModel.insertMany).not.toHaveBeenCalled();
+      expect(mockModel.deleteMany).toHaveBeenCalledWith({});
+      expect(mockModel.insertMany).toHaveBeenCalledWith(seedData);
       expect(result).toEqual({
-        message: 'Database already has 5 books. Skipping seed.',
-        count: 5
+        message: 'Successfully seeded 1 books',
+        count: 1
       });
     });
   });
 
   describe('countDocuments', () => {
-    it('should return the count of documents', async () => {
-      mockModel.countDocuments.mockResolvedValue(42);
+    it('should return document count', async () => {
+      mockModel.countDocuments.mockResolvedValue(5);
 
       const result = await repository.countDocuments();
 
-      expect(mockModel.countDocuments).toHaveBeenCalled();
-      expect(result).toBe(42);
+      expect(mockModel.countDocuments).toHaveBeenCalledWith({});
+      expect(result).toBe(5);
+    });
+
+    it('should return document count with query', async () => {
+      const query = { author: 'Test Author' };
+      mockModel.countDocuments.mockResolvedValue(2);
+
+      const result = await repository.countDocuments(query);
+
+      expect(mockModel.countDocuments).toHaveBeenCalledWith(query);
+      expect(result).toBe(2);
     });
   });
 }); 

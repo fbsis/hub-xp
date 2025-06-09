@@ -1,6 +1,7 @@
 import { Model } from 'mongoose';
 import { ReviewMongoDocument } from '../schemas/ReviewSchema';
 import { ReviewPrimitive, CreateReviewDto, UpdateReviewDto } from '@domain/core';
+import { BaseRepository } from './BaseRepository';
 
 export interface ReviewRepositoryInterface {
   create(reviewData: CreateReviewDto): Promise<ReviewPrimitive>;
@@ -11,24 +12,12 @@ export interface ReviewRepositoryInterface {
   delete(id: string): Promise<boolean>;
 }
 
-export class ReviewRepository implements ReviewRepositoryInterface {
-  constructor(private readonly reviewModel: Model<ReviewMongoDocument>) {}
+export class ReviewRepository 
+  extends BaseRepository<ReviewMongoDocument, ReviewPrimitive, CreateReviewDto, UpdateReviewDto> 
+  implements ReviewRepositoryInterface {
 
-  async create(reviewData: CreateReviewDto): Promise<ReviewPrimitive> {
-    const review = new this.reviewModel({
-      bookId: reviewData.bookId,
-      rating: reviewData.rating,
-      comment: reviewData.comment || '',
-      reviewerName: reviewData.reviewerName
-    });
-
-    const savedReview = await review.save();
-    return this.toReviewPrimitive(savedReview);
-  }
-
-  async findById(id: string): Promise<ReviewPrimitive | null> {
-    const review = await this.reviewModel.findById(id);
-    return review ? this.toReviewPrimitive(review) : null;
+  constructor(reviewModel: Model<ReviewMongoDocument>) {
+    super(reviewModel);
   }
 
   async findAll(filters: any): Promise<{ reviews: ReviewPrimitive[]; total: number; page: number; limit: number }> {
@@ -40,38 +29,21 @@ export class ReviewRepository implements ReviewRepositoryInterface {
       reviewerName
     } = filters;
 
-    // Build query
-    const query: any = {};
+    // Build query using base class helpers
+    const query = {
+      ...this.buildEqualityQuery('bookId', bookId),
+      ...this.buildEqualityQuery('rating', rating ? parseInt(rating) : undefined),
+      ...this.buildRegexQuery('reviewerName', reviewerName)
+    };
 
-    if (bookId) {
-      query.bookId = bookId;
-    }
-
-    if (rating) {
-      query.rating = parseInt(rating);
-    }
-
-    if (reviewerName) {
-      query.reviewerName = { $regex: reviewerName, $options: 'i' };
-    }
-
-    // Execute query with pagination
-    const skip = (page - 1) * limit;
-    
-    const [reviews, total] = await Promise.all([
-      this.reviewModel.find(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-      this.reviewModel.countDocuments(query)
-    ]);
+    const sort = { createdAt: -1 };
+    const result = await this.paginate(query, page, limit, sort);
 
     return {
-      reviews: reviews.map(review => this.toReviewPrimitive(review)),
-      total,
-      page,
-      limit
+      reviews: result.items,
+      total: result.total,
+      page: result.page,
+      limit: result.limit
     };
   }
 
@@ -83,56 +55,43 @@ export class ReviewRepository implements ReviewRepositoryInterface {
 
     // Build query
     const query = { bookId };
-
-    // Execute query with pagination
-    const skip = (page - 1) * limit;
-    
-    const [reviews, total] = await Promise.all([
-      this.reviewModel.find(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-      this.reviewModel.countDocuments(query)
-    ]);
+    const sort = { createdAt: -1 };
+    const result = await this.paginate(query, page, limit, sort);
 
     return {
-      reviews: reviews.map(review => this.toReviewPrimitive(review)),
-      total,
-      page,
-      limit
+      reviews: result.items,
+      total: result.total,
+      page: result.page,
+      limit: result.limit
     };
   }
 
-  async update(id: string, updateData: UpdateReviewDto): Promise<ReviewPrimitive | null> {
-    const updateFields: any = {};
-
-    if (updateData.rating !== undefined) updateFields.rating = updateData.rating;
-    if (updateData.comment !== undefined) updateFields.comment = updateData.comment;
-
-    const review = await this.reviewModel.findByIdAndUpdate(
-      id,
-      updateFields,
-      { new: true, runValidators: true }
-    );
-
-    return review ? this.toReviewPrimitive(review) : null;
-  }
-
-  async delete(id: string): Promise<boolean> {
-    const result = await this.reviewModel.findByIdAndDelete(id);
-    return result !== null;
-  }
-
-  private toReviewPrimitive(reviewDoc: any): ReviewPrimitive {
+  // Mapping methods required by BaseRepository
+  protected mapCreateDto(data: CreateReviewDto): any {
     return {
-      _id: reviewDoc._id.toString(),
-      bookId: reviewDoc.bookId,
-      rating: reviewDoc.rating,
-      comment: reviewDoc.comment,
-      reviewerName: reviewDoc.reviewerName,
-      createdAt: reviewDoc.createdAt,
-      updatedAt: reviewDoc.updatedAt
+      bookId: data.bookId,
+      rating: data.rating,
+      comment: data.comment || '',
+      reviewerName: data.reviewerName
+    };
+  }
+
+  protected mapUpdateDto(data: UpdateReviewDto): any {
+    const updateFields: any = {};
+    if (data.rating !== undefined) updateFields.rating = data.rating;
+    if (data.comment !== undefined) updateFields.comment = data.comment;
+    return updateFields;
+  }
+
+  protected mapToEntity(doc: any): ReviewPrimitive {
+    return {
+      _id: doc._id.toString(),
+      bookId: doc.bookId,
+      rating: doc.rating,
+      comment: doc.comment,
+      reviewerName: doc.reviewerName,
+      createdAt: doc.createdAt,
+      updatedAt: doc.updatedAt
     };
   }
 } 
