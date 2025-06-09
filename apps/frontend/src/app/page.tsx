@@ -16,7 +16,8 @@ interface BookWithStats {
 }
 
 async function fetchTopBooks(): Promise<BookWithStats[]> {
-  const response = await fetch("http://localhost:3001/books/top?limit=6");
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+  const response = await fetch(`${API_URL}/books/top?limit=6`);
   
   if (!response.ok) {
     throw new Error("Failed to fetch books");
@@ -32,37 +33,23 @@ export default function HomePage() {
   });
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="p-5">
       {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-        <h1 style={{ fontSize: '36px', margin: '0 0 16px 0' }}>📚 Book Reviews</h1>
-        <p style={{ fontSize: '18px', color: '#666', margin: '0 0 20px 0' }}>
+      <div className="text-center mb-10">
+        <h1 className="text-4xl font-bold m-0 mb-4">📚 Book Reviews</h1>
+        <p className="text-lg text-gray-600 m-0 mb-5">
           Discover and review amazing books
         </p>
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+        <div className="flex gap-3 justify-center">
           <Link 
             href="/books"
-            style={{
-              backgroundColor: '#007bff',
-              color: 'white',
-              padding: '12px 24px',
-              textDecoration: 'none',
-              borderRadius: '6px',
-              fontSize: '16px'
-            }}
+            className="bg-blue-600 text-white px-6 py-3 no-underline rounded-md text-base font-medium hover:bg-blue-700 transition-colors"
           >
             Browse All Books
           </Link>
           <Link 
             href="/books/new"
-            style={{
-              backgroundColor: '#28a745',
-              color: 'white',
-              padding: '12px 24px',
-              textDecoration: 'none',
-              borderRadius: '6px',
-              fontSize: '16px'
-            }}
+            className="bg-green-600 text-white px-6 py-3 no-underline rounded-md text-base font-medium hover:bg-green-700 transition-colors"
           >
             Add New Book
           </Link>
@@ -70,42 +57,29 @@ export default function HomePage() {
       </div>
 
       {/* Top Rated Books Section */}
-      <div style={{ marginBottom: '40px' }}>
-        <h2 style={{ marginBottom: '20px' }}>⭐ Top Rated Books</h2>
+      <div className="mb-10">
+        <h2 className="mb-5 text-2xl font-semibold">⭐ Top Rated Books</h2>
         
         {isLoading && (
-          <div style={{ textAlign: 'center', padding: '40px' }}>
-            Loading top books...
+          <div className="text-center py-10">
+            <div className="text-gray-600">Loading top books...</div>
           </div>
         )}
 
         {error && (
-          <div style={{ 
-            color: 'red', 
-            padding: '20px', 
-            backgroundColor: '#ffe6e6',
-            borderRadius: '6px'
-          }}>
+          <div className="text-red-600 p-5 bg-red-50 rounded-md border border-red-200">
             Error loading books: {error.message}
           </div>
         )}
 
         {!isLoading && !error && books.length === 0 && (
-          <div style={{ 
-            textAlign: 'center', 
-            padding: '40px',
-            color: '#666'
-          }}>
+          <div className="text-center py-10 text-gray-600">
             No books available yet. Be the first to add one!
           </div>
         )}
 
         {!isLoading && !error && books.length > 0 && (
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-            gap: '20px'
-          }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {books.map((book) => (
               <BookCard key={book._id} book={book} />
             ))}
@@ -115,14 +89,10 @@ export default function HomePage() {
 
       {/* Call to Action */}
       {!isLoading && !error && books.length > 0 && (
-        <div style={{ textAlign: 'center', marginTop: '40px' }}>
+        <div className="text-center mt-10">
           <Link 
             href="/books"
-            style={{
-              color: '#007bff',
-              textDecoration: 'none',
-              fontSize: '16px'
-            }}
+            className="text-blue-600 no-underline text-base hover:text-blue-800 transition-colors"
           >
             View all books →
           </Link>

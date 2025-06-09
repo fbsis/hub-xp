@@ -33,7 +33,8 @@ interface CreateReviewData {
 
 // API functions
 async function fetchBook(id: string): Promise<Book> {
-  const response = await fetch(`http://localhost:3001/books/${id}`);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+  const response = await fetch(`${API_URL}/books/${id}`);
   if (!response.ok) {
     throw new Error("Failed to fetch book");
   }
@@ -41,7 +42,8 @@ async function fetchBook(id: string): Promise<Book> {
 }
 
 async function fetchBookReviews(bookId: string): Promise<Review[]> {
-  const response = await fetch(`http://localhost:3001/reviews/book/${bookId}`);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+  const response = await fetch(`${API_URL}/reviews/book/${bookId}`);
   if (!response.ok) {
     throw new Error("Failed to fetch reviews");
   }
@@ -50,7 +52,8 @@ async function fetchBookReviews(bookId: string): Promise<Review[]> {
 }
 
 async function createReview(reviewData: CreateReviewData): Promise<Review> {
-  const response = await fetch("http://localhost:3001/reviews", {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+  const response = await fetch(`${API_URL}/reviews`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -131,25 +134,19 @@ export default function BookReviewPage() {
 
   if (bookLoading) {
     return (
-      <div style={{ padding: "20px", textAlign: "center" }}>
-        <div style={{ fontSize: "18px", color: "#666" }}>Loading book...</div>
+      <div className="p-5 text-center">
+        <div className="text-lg text-gray-600">Loading book...</div>
       </div>
     );
   }
 
   if (bookError || !book) {
     return (
-      <div style={{ padding: "20px" }}>
-        <div style={{
-          color: "red",
-          padding: "20px",
-          backgroundColor: "#ffe6e6",
-          borderRadius: "6px",
-          marginBottom: "20px"
-        }}>
+      <div className="p-5">
+        <div className="text-red-600 p-5 bg-red-50 rounded-md mb-5 border border-red-200">
           Error loading book: {bookError?.message || "Book not found"}
         </div>
-        <Link href="/books" style={{ color: "#007bff", textDecoration: "none" }}>
+        <Link href="/books" className="text-blue-600 hover:text-blue-800 no-underline">
           ← Back to Books
         </Link>
       </div>
@@ -157,62 +154,44 @@ export default function BookReviewPage() {
   }
 
   return (
-    <div style={{ padding: "20px", maxWidth: "800px", margin: "0 auto" }}>
+    <div className="p-5 max-w-4xl mx-auto">
       {/* Header */}
-      <div style={{ marginBottom: "30px" }}>
+      <div className="mb-8">
         <Link 
           href="/books" 
-          style={{ 
-            color: "#007bff", 
-            textDecoration: "none",
-            fontSize: "14px",
-            marginBottom: "10px",
-            display: "inline-block"
-          }}
+          className="text-blue-600 hover:text-blue-800 no-underline text-sm mb-2 inline-block"
         >
           ← Back to Books
         </Link>
-        <h1 style={{ margin: "0 0 8px 0" }}>📝 Write a Review</h1>
-        <p style={{ margin: 0, color: "#666" }}>
+        <h1 className="text-2xl font-bold mb-2">📝 Write a Review</h1>
+        <p className="text-gray-600 m-0">
           Share your thoughts about this book
         </p>
       </div>
 
       {/* Book Information */}
-      <div style={{
-        backgroundColor: "#f8f9fa",
-        padding: "20px",
-        borderRadius: "8px",
-        marginBottom: "30px",
-        border: "1px solid #e9ecef"
-      }}>
-        <h2 style={{ margin: "0 0 8px 0", color: "#2c3e50" }}>{book.title}</h2>
-        <p style={{ margin: "0 0 8px 0", color: "#6c757d" }}>by {book.author}</p>
-        <p style={{ margin: "0 0 8px 0", color: "#6c757d", fontSize: "14px" }}>
+      <div className="bg-gray-50 p-5 rounded-lg mb-8 border border-gray-200">
+        <h2 className="text-xl font-semibold mb-2 text-gray-800">{book.title}</h2>
+        <p className="text-gray-600 mb-2">by {book.author}</p>
+        <p className="text-gray-600 text-sm mb-2">
           Published: {book.publishedYear}
         </p>
         {book.description && (
-          <p style={{ margin: "8px 0 0 0", color: "#495057", fontSize: "14px" }}>
+          <p className="text-gray-700 text-sm mt-2">
             {book.description}
           </p>
         )}
       </div>
 
       {/* Review Form */}
-      <div style={{
-        backgroundColor: "white",
-        padding: "30px",
-        borderRadius: "8px",
-        border: "1px solid #e9ecef",
-        marginBottom: "30px"
-      }}>
-        <h3 style={{ margin: "0 0 20px 0", color: "#2c3e50" }}>Add Your Review</h3>
+      <div className="bg-white p-8 rounded-lg border border-gray-200 mb-8 shadow-sm">
+        <h3 className="text-lg font-semibold mb-5 text-gray-800">Add Your Review</h3>
         
         <form onSubmit={handleSubmit}>
           {/* Rating */}
-          <div style={{ marginBottom: "20px" }}>
+          <div className="mb-5">
             <Label required>Rating</Label>
-            <div style={{ marginTop: "8px" }}>
+            <div className="mt-2">
               <StarRating 
                 value={rating} 
                 onChange={setRating}
@@ -222,7 +201,7 @@ export default function BookReviewPage() {
           </div>
 
           {/* Reviewer Name */}
-          <div style={{ marginBottom: "20px" }}>
+          <div className="mb-5">
             <Label htmlFor="reviewerName" required>Your Name</Label>
             <Input
               id="reviewerName"
@@ -235,7 +214,7 @@ export default function BookReviewPage() {
           </div>
 
           {/* Comment */}
-          <div style={{ marginBottom: "30px" }}>
+          <div className="mb-8">
             <Label htmlFor="comment">Comment (Optional)</Label>
             <Textarea
               id="comment"
@@ -247,7 +226,7 @@ export default function BookReviewPage() {
           </div>
 
           {/* Submit Button */}
-          <div style={{ display: "flex", gap: "12px" }}>
+          <div className="flex gap-3">
             <Button
               type="submit"
               disabled={createReviewMutation.isPending}
@@ -266,48 +245,31 @@ export default function BookReviewPage() {
 
       {/* Existing Reviews */}
       <div>
-        <h3 style={{ margin: "0 0 20px 0", color: "#2c3e50" }}>
+        <h3 className="text-lg font-semibold mb-5 text-gray-800">
           📚 Existing Reviews ({reviews.length})
         </h3>
         
         {reviewsLoading ? (
-          <div style={{ textAlign: "center", padding: "20px", color: "#666" }}>
+          <div className="text-center p-5 text-gray-600">
             Loading reviews...
           </div>
         ) : reviews.length === 0 ? (
-          <div style={{
-            textAlign: "center",
-            padding: "40px",
-            color: "#666",
-            backgroundColor: "#f8f9fa",
-            borderRadius: "8px",
-            border: "1px solid #e9ecef"
-          }}>
+          <div className="text-center p-10 text-gray-600 bg-gray-50 rounded-lg border border-gray-200">
             No reviews yet. Be the first to review this book!
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <div className="flex flex-col gap-4">
             {reviews.map((review) => (
               <div
                 key={review._id}
-                style={{
-                  padding: "20px",
-                  backgroundColor: "white",
-                  borderRadius: "8px",
-                  border: "1px solid #e9ecef"
-                }}
+                className="p-5 bg-white rounded-lg border border-gray-200 shadow-sm"
               >
-                <div style={{ 
-                  display: "flex", 
-                  justifyContent: "space-between", 
-                  alignItems: "start",
-                  marginBottom: "10px"
-                }}>
+                <div className="flex justify-between items-start mb-3">
                   <div>
-                    <div style={{ fontWeight: "500", color: "#2c3e50" }}>
+                    <div className="font-medium text-gray-800">
                       {review.reviewerName}
                     </div>
-                    <div style={{ fontSize: "12px", color: "#6c757d" }}>
+                    <div className="text-xs text-gray-500">
                       {new Date(review.createdAt).toLocaleDateString()}
                     </div>
                   </div>
@@ -315,11 +277,7 @@ export default function BookReviewPage() {
                 </div>
                 
                 {review.comment && (
-                  <p style={{ 
-                    margin: 0, 
-                    color: "#495057",
-                    lineHeight: "1.5"
-                  }}>
+                  <p className="text-gray-700 leading-relaxed m-0">
                     {review.comment}
                   </p>
                 )}

@@ -29,7 +29,8 @@ interface BookWithStats {
 
 // API function to fetch all books
 async function fetchAllBooks(): Promise<Book[]> {
-  const response = await fetch("http://localhost:3001/books");
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+  const response = await fetch(`${API_URL}/books`);
   
   if (!response.ok) {
     throw new Error("Failed to fetch books");
@@ -41,7 +42,8 @@ async function fetchAllBooks(): Promise<Book[]> {
 
 // API function to fetch top books
 async function fetchTopBooks(): Promise<BookWithStats[]> {
-  const response = await fetch("http://localhost:3001/books/top?limit=20");
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+  const response = await fetch(`${API_URL}/books/top?limit=20`);
   
   if (!response.ok) {
     throw new Error("Failed to fetch top books");
@@ -73,20 +75,15 @@ export default function BooksPage() {
   const TopBooksView = () => {
     if (loadingTop) {
       return (
-        <div style={{ textAlign: 'center', padding: '40px' }}>
-          Loading top rated books...
+        <div className="text-center py-10">
+          <div className="text-gray-600">Loading top rated books...</div>
         </div>
       );
     }
 
     if (errorTop) {
       return (
-        <div style={{ 
-          color: 'red', 
-          padding: '20px', 
-          backgroundColor: '#ffe6e6',
-          borderRadius: '6px'
-        }}>
+        <div className="text-red-600 p-5 bg-red-50 rounded-md border border-red-200">
           Error loading top books: {errorTop.message}
         </div>
       );
@@ -94,11 +91,7 @@ export default function BooksPage() {
 
     if (topBooks.length === 0) {
       return (
-        <div style={{ 
-          textAlign: 'center', 
-          padding: '40px',
-          color: '#666'
-        }}>
+        <div className="text-center py-10 text-gray-600">
           No rated books yet. Add some reviews to see top books!
         </div>
       );
@@ -106,28 +99,18 @@ export default function BooksPage() {
 
     return (
       <div>
-        <div style={{ 
-          marginBottom: '20px',
-          padding: '15px',
-          backgroundColor: '#f0f8ff',
-          borderRadius: '6px',
-          borderLeft: '4px solid #007bff'
-        }}>
-          <p style={{ margin: 0, color: '#007bff', fontWeight: '500' }}>
+        <div className="mb-5 p-4 bg-blue-50 rounded-md border-l-4 border-blue-500">
+          <p className="m-0 text-blue-700 font-medium">
             ⭐ These are the highest rated books. Click on any book to add your review!
           </p>
         </div>
         
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-          gap: '20px'
-        }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {topBooks.map((book) => (
             <div
               key={book._id}
               onClick={() => handleBookClick(book._id)}
-              style={{ cursor: 'pointer' }}
+              className="cursor-pointer"
             >
               <BookCard book={book} />
             </div>
@@ -141,20 +124,15 @@ export default function BooksPage() {
   const AllBooksView = () => {
     if (loadingAll) {
       return (
-        <div style={{ textAlign: 'center', padding: '40px' }}>
-          Loading all books...
+        <div className="text-center py-10">
+          <div className="text-gray-600">Loading all books...</div>
         </div>
       );
     }
 
     if (errorAll) {
       return (
-        <div style={{ 
-          color: 'red', 
-          padding: '20px', 
-          backgroundColor: '#ffe6e6',
-          borderRadius: '6px'
-        }}>
+        <div className="text-red-600 p-5 bg-red-50 rounded-md border border-red-200">
           Error loading books: {errorAll.message}
         </div>
       );
@@ -162,11 +140,7 @@ export default function BooksPage() {
 
     if (allBooks.length === 0) {
       return (
-        <div style={{ 
-          textAlign: 'center', 
-          padding: '40px',
-          color: '#666'
-        }}>
+        <div className="text-center py-10 text-gray-600">
           No books available yet. Be the first to add one!
         </div>
       );
@@ -174,28 +148,18 @@ export default function BooksPage() {
 
     return (
       <div>
-        <div style={{ 
-          marginBottom: '20px',
-          padding: '15px',
-          backgroundColor: '#f0f8ff',
-          borderRadius: '6px',
-          borderLeft: '4px solid #28a745'
-        }}>
-          <p style={{ margin: 0, color: '#28a745', fontWeight: '500' }}>
+        <div className="mb-5 p-4 bg-blue-50 rounded-md border-l-4 border-green-500">
+          <p className="m-0 text-green-700 font-medium">
             📚 All books in the library. Click on any book to add your review!
           </p>
         </div>
         
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-          gap: '20px'
-        }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {allBooks.map((book) => (
             <div
               key={book._id}
               onClick={() => handleBookClick(book._id)}
-              style={{ cursor: 'pointer' }}
+              className="cursor-pointer"
             >
               <BookCard book={book} />
             </div>
@@ -220,31 +184,18 @@ export default function BooksPage() {
   ];
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="p-5">
       {/* Header */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        marginBottom: '30px' 
-      }}>
+      <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 style={{ margin: '0 0 8px 0' }}>📖 Book Reviews</h1>
-          <p style={{ margin: 0, color: '#666', fontSize: '16px' }}>
+          <h1 className="m-0 mb-2 text-3xl font-bold">📖 Book Reviews</h1>
+          <p className="m-0 text-gray-600 text-base">
             Discover great books and share your thoughts
           </p>
         </div>
         <Link 
           href="/books/new"
-          style={{
-            backgroundColor: '#28a745',
-            color: 'white',
-            padding: '12px 24px',
-            textDecoration: 'none',
-            borderRadius: '6px',
-            fontSize: '14px',
-            fontWeight: '500'
-          }}
+          className="bg-green-600 text-white px-6 py-3 no-underline rounded-md text-sm font-medium hover:bg-green-700 transition-colors"
         >
           ➕ Add New Book
         </Link>
@@ -255,36 +206,19 @@ export default function BooksPage() {
 
       {/* Summary */}
       {!loadingAll && !errorAll && !loadingTop && !errorTop && (
-        <div style={{ 
-          marginTop: '30px', 
-          display: 'flex',
-          gap: '20px',
-          justifyContent: 'center'
-        }}>
-          <div style={{
-            padding: '15px 20px',
-            backgroundColor: '#fff3cd',
-            borderRadius: '6px',
-            borderLeft: '4px solid #ffc107',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#856404' }}>
+        <div className="mt-8 flex gap-5 justify-center">
+          <div className="px-5 py-4 bg-yellow-50 rounded-md border-l-4 border-yellow-400 text-center">
+            <div className="text-lg font-bold text-yellow-800">
               {topBooks.length}
             </div>
-            <div style={{ fontSize: '12px', color: '#856404' }}>Top Rated</div>
+            <div className="text-xs text-yellow-800">Top Rated</div>
           </div>
           
-          <div style={{
-            padding: '15px 20px',
-            backgroundColor: '#d1ecf1',
-            borderRadius: '6px',
-            borderLeft: '4px solid #17a2b8',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#0c5460' }}>
+          <div className="px-5 py-4 bg-cyan-50 rounded-md border-l-4 border-cyan-500 text-center">
+            <div className="text-lg font-bold text-cyan-800">
               {allBooks.length}
             </div>
-            <div style={{ fontSize: '12px', color: '#0c5460' }}>Total Books</div>
+            <div className="text-xs text-cyan-800">Total Books</div>
           </div>
         </div>
       )}
