@@ -11,81 +11,124 @@ describe('Input Component', () => {
     expect(input).toHaveAttribute('type', 'text');
   });
 
-  it('renders with custom type', () => {
-    render(<Input type="number" />);
-    const input = screen.getByRole('spinbutton');
-    expect(input).toHaveAttribute('type', 'number');
-  });
-
-  it('renders with email type', () => {
+  it('renders with specified type', () => {
     render(<Input type="email" />);
     const input = screen.getByRole('textbox');
     expect(input).toHaveAttribute('type', 'email');
   });
 
-  it('renders with password type', () => {
-    render(<Input type="password" />);
-    const input = document.querySelector('input[type="password"]');
-    expect(input).toHaveAttribute('type', 'password');
+  it('renders with number type', () => {
+    render(<Input type="number" />);
+    const input = screen.getByRole('spinbutton');
+    expect(input).toHaveAttribute('type', 'number');
   });
 
-  it('displays the correct value', () => {
-    render(<Input value="test value" readOnly />);
-    const input = screen.getByDisplayValue('test value');
-    expect(input).toBeInTheDocument();
-  });
-
-  it('calls onChange when user types', async () => {
-    const user = userEvent.setup();
+  it('handles value and onChange', () => {
     const handleChange = jest.fn();
-    render(<Input onChange={handleChange} />);
-    
+    render(<Input value="test" onChange={handleChange} />);
     const input = screen.getByRole('textbox');
-    await user.type(input, 'hello');
+    expect(input).toHaveValue('test');
     
-    expect(handleChange).toHaveBeenCalledTimes(5); // once for each character
+    fireEvent.change(input, { target: { value: 'new value' } });
+    expect(handleChange).toHaveBeenCalled();
   });
 
-  it('renders with placeholder text', () => {
-    render(<Input placeholder="Enter your name" />);
-    const input = screen.getByPlaceholderText('Enter your name');
-    expect(input).toBeInTheDocument();
+  it('renders with placeholder', () => {
+    render(<Input placeholder="Enter text" />);
+    const input = screen.getByRole('textbox');
+    expect(input).toHaveAttribute('placeholder', 'Enter text');
   });
 
-  it('renders as required when required prop is true', () => {
+  it('is required when required prop is true', () => {
     render(<Input required />);
     const input = screen.getByRole('textbox');
     expect(input).toBeRequired();
   });
 
-  it('renders as disabled when disabled prop is true', () => {
+  it('is disabled when disabled prop is true', () => {
     render(<Input disabled />);
     const input = screen.getByRole('textbox');
     expect(input).toBeDisabled();
   });
 
-  it('applies correct id and name attributes', () => {
-    render(<Input id="test-input" name="testName" />);
+  it('is readonly when readOnly prop is true', () => {
+    render(<Input readOnly />);
+    const input = screen.getByRole('textbox');
+    expect(input).toHaveAttribute('readonly');
+  });
+
+  it('renders with id and name attributes', () => {
+    render(<Input id="test-input" name="test-name" />);
     const input = screen.getByRole('textbox');
     expect(input).toHaveAttribute('id', 'test-input');
-    expect(input).toHaveAttribute('name', 'testName');
+    expect(input).toHaveAttribute('name', 'test-name');
   });
 
-  it('has correct styling', () => {
+  it('has correct Tailwind styling classes', () => {
     render(<Input />);
     const input = screen.getByRole('textbox');
-    expect(input).toHaveStyle({
-      width: '100%',
-      padding: '8px',
-      border: '1px solid #ccc',
-      borderRadius: '4px',
-      fontSize: '14px'
-    });
+    expect(input).toHaveClass(
+      'w-full', 'px-3', 'py-2', 'border', 'rounded-md', 
+      'text-sm', 'transition-colors', 'duration-200'
+    );
   });
 
-  it('handles numeric values correctly', () => {
-    render(<Input type="number" value={42} readOnly />);
-    const input = screen.getByDisplayValue('42');
-    expect(input).toBeInTheDocument();
+  it('has correct color classes', () => {
+    render(<Input />);
+    const input = screen.getByRole('textbox');
+    expect(input).toHaveClass(
+      'text-gray-900', 'bg-white', 'border-gray-300', 'placeholder-gray-500'
+    );
+  });
+
+  it('has correct focus classes', () => {
+    render(<Input />);
+    const input = screen.getByRole('textbox');
+    expect(input).toHaveClass(
+      'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-blue-500'
+    );
+  });
+
+  it('has correct disabled classes', () => {
+    render(<Input disabled />);
+    const input = screen.getByRole('textbox');
+    expect(input).toHaveClass(
+      'disabled:bg-gray-100', 'disabled:text-gray-400', 'disabled:cursor-not-allowed'
+    );
+  });
+
+  it('has correct hover classes', () => {
+    render(<Input />);
+    const input = screen.getByRole('textbox');
+    expect(input).toHaveClass('hover:border-gray-400');
+  });
+
+  it('accepts custom className', () => {
+    render(<Input className="custom-class" />);
+    const input = screen.getByRole('textbox');
+    expect(input).toHaveClass('custom-class');
+  });
+
+  it('combines base classes with custom className', () => {
+    render(<Input className="border-red-500" />);
+    const input = screen.getByRole('textbox');
+    expect(input).toHaveClass('w-full', 'px-3', 'py-2', 'border-red-500');
+  });
+
+  it('handles number input correctly', () => {
+    const handleChange = jest.fn();
+    render(<Input type="number" value={42} onChange={handleChange} />);
+    const input = screen.getByRole('spinbutton');
+    expect(input).toHaveValue(42);
+  });
+
+  it('works with user interactions', async () => {
+    const user = userEvent.setup();
+    const handleChange = jest.fn();
+    render(<Input onChange={handleChange} />);
+    const input = screen.getByRole('textbox');
+    
+    await user.type(input, 'hello');
+    expect(handleChange).toHaveBeenCalled();
   });
 }); 

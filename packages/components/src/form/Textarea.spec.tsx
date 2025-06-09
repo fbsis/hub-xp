@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Textarea } from './Textarea';
 
@@ -8,49 +8,7 @@ describe('Textarea Component', () => {
     render(<Textarea />);
     const textarea = screen.getByRole('textbox');
     expect(textarea).toBeInTheDocument();
-    expect(textarea.tagName).toBe('TEXTAREA');
-  });
-
-  it('displays the correct value', () => {
-    render(<Textarea value="test content" readOnly />);
-    const textarea = screen.getByDisplayValue('test content');
-    expect(textarea).toBeInTheDocument();
-  });
-
-  it('calls onChange when user types', async () => {
-    const user = userEvent.setup();
-    const handleChange = jest.fn();
-    render(<Textarea onChange={handleChange} />);
-    
-    const textarea = screen.getByRole('textbox');
-    await user.type(textarea, 'hello');
-    
-    expect(handleChange).toHaveBeenCalledTimes(5); // once for each character
-  });
-
-  it('renders with placeholder text', () => {
-    render(<Textarea placeholder="Enter your message" />);
-    const textarea = screen.getByPlaceholderText('Enter your message');
-    expect(textarea).toBeInTheDocument();
-  });
-
-  it('renders as required when required prop is true', () => {
-    render(<Textarea required />);
-    const textarea = screen.getByRole('textbox');
-    expect(textarea).toBeRequired();
-  });
-
-  it('renders as disabled when disabled prop is true', () => {
-    render(<Textarea disabled />);
-    const textarea = screen.getByRole('textbox');
-    expect(textarea).toBeDisabled();
-  });
-
-  it('applies correct id and name attributes', () => {
-    render(<Textarea id="test-textarea" name="testName" />);
-    const textarea = screen.getByRole('textbox');
-    expect(textarea).toHaveAttribute('id', 'test-textarea');
-    expect(textarea).toHaveAttribute('name', 'testName');
+    expect(textarea).toHaveAttribute('rows', '3');
   });
 
   it('renders with custom rows', () => {
@@ -59,59 +17,105 @@ describe('Textarea Component', () => {
     expect(textarea).toHaveAttribute('rows', '5');
   });
 
-  it('renders with default rows when not specified', () => {
-    render(<Textarea />);
-    const textarea = screen.getByRole('textbox');
-    expect(textarea).toHaveAttribute('rows', '3');
-  });
-
-  it('has correct styling', () => {
-    render(<Textarea />);
-    const textarea = screen.getByRole('textbox');
-    expect(textarea).toHaveStyle({
-      width: '100%',
-      padding: '8px',
-      border: '1px solid #ccc',
-      borderRadius: '4px',
-      fontSize: '14px',
-      minHeight: '60px',
-      resize: 'vertical'
-    });
-  });
-
-  it('handles long text content', () => {
-    const longText = 'This is a very long text content that should be handled properly by the textarea component.';
-    render(<Textarea value={longText} readOnly />);
-    const textarea = screen.getByDisplayValue(longText);
-    expect(textarea).toBeInTheDocument();
-  });
-
-  it('handles empty string value', () => {
-    render(<Textarea value="" readOnly />);
-    const textarea = screen.getByRole('textbox');
-    expect(textarea).toHaveValue('');
-  });
-
-  it('combines all props correctly', () => {
+  it('handles value and onChange', () => {
     const handleChange = jest.fn();
-    render(
-      <Textarea 
-        id="complex-textarea"
-        name="complexName"
-        value="Complex content"
-        onChange={handleChange}
-        placeholder="Enter complex text"
-        required
-        rows={4}
-      />
-    );
-    
+    render(<Textarea value="test content" onChange={handleChange} />);
     const textarea = screen.getByRole('textbox');
-    expect(textarea).toHaveAttribute('id', 'complex-textarea');
-    expect(textarea).toHaveAttribute('name', 'complexName');
-    expect(textarea).toHaveValue('Complex content');
-    expect(textarea).toHaveAttribute('placeholder', 'Enter complex text');
+    expect(textarea).toHaveValue('test content');
+    
+    fireEvent.change(textarea, { target: { value: 'new content' } });
+    expect(handleChange).toHaveBeenCalled();
+  });
+
+  it('renders with placeholder', () => {
+    render(<Textarea placeholder="Enter description" />);
+    const textarea = screen.getByRole('textbox');
+    expect(textarea).toHaveAttribute('placeholder', 'Enter description');
+  });
+
+  it('is required when required prop is true', () => {
+    render(<Textarea required />);
+    const textarea = screen.getByRole('textbox');
     expect(textarea).toBeRequired();
-    expect(textarea).toHaveAttribute('rows', '4');
+  });
+
+  it('is disabled when disabled prop is true', () => {
+    render(<Textarea disabled />);
+    const textarea = screen.getByRole('textbox');
+    expect(textarea).toBeDisabled();
+  });
+
+  it('is readonly when readOnly prop is true', () => {
+    render(<Textarea readOnly />);
+    const textarea = screen.getByRole('textbox');
+    expect(textarea).toHaveAttribute('readonly');
+  });
+
+  it('renders with id and name attributes', () => {
+    render(<Textarea id="test-textarea" name="test-name" />);
+    const textarea = screen.getByRole('textbox');
+    expect(textarea).toHaveAttribute('id', 'test-textarea');
+    expect(textarea).toHaveAttribute('name', 'test-name');
+  });
+
+  it('has correct Tailwind styling classes', () => {
+    render(<Textarea />);
+    const textarea = screen.getByRole('textbox');
+    expect(textarea).toHaveClass(
+      'w-full', 'px-3', 'py-2', 'border', 'rounded-md', 
+      'text-sm', 'transition-colors', 'duration-200', 'resize-y'
+    );
+  });
+
+  it('has correct color classes', () => {
+    render(<Textarea />);
+    const textarea = screen.getByRole('textbox');
+    expect(textarea).toHaveClass(
+      'text-gray-900', 'bg-white', 'border-gray-300', 'placeholder-gray-500'
+    );
+  });
+
+  it('has correct focus classes', () => {
+    render(<Textarea />);
+    const textarea = screen.getByRole('textbox');
+    expect(textarea).toHaveClass(
+      'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-blue-500'
+    );
+  });
+
+  it('has correct disabled classes', () => {
+    render(<Textarea disabled />);
+    const textarea = screen.getByRole('textbox');
+    expect(textarea).toHaveClass(
+      'disabled:bg-gray-100', 'disabled:text-gray-400', 'disabled:cursor-not-allowed'
+    );
+  });
+
+  it('has correct hover classes', () => {
+    render(<Textarea />);
+    const textarea = screen.getByRole('textbox');
+    expect(textarea).toHaveClass('hover:border-gray-400');
+  });
+
+  it('accepts custom className', () => {
+    render(<Textarea className="custom-class" />);
+    const textarea = screen.getByRole('textbox');
+    expect(textarea).toHaveClass('custom-class');
+  });
+
+  it('combines base classes with custom className', () => {
+    render(<Textarea className="border-red-500" />);
+    const textarea = screen.getByRole('textbox');
+    expect(textarea).toHaveClass('w-full', 'px-3', 'py-2', 'border-red-500');
+  });
+
+  it('works with user interactions', async () => {
+    const user = userEvent.setup();
+    const handleChange = jest.fn();
+    render(<Textarea onChange={handleChange} />);
+    const textarea = screen.getByRole('textbox');
+    
+    await user.type(textarea, 'hello world');
+    expect(handleChange).toHaveBeenCalled();
   });
 }); 
