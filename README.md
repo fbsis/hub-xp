@@ -1,73 +1,104 @@
-# Tech-Assessment – Book Reviews Platform
+# Book Reviews Platform
 
-**Goal**  
-Build a small “Book Reviews” platform (CRUD books + reviews, plus an endpoint that returns the top-rated books).
+Uma plataforma simples para cadastro e listagem de livros, seguindo os princípios de DDD (Domain Driven Design).
 
-| Stack (mandatory) | Why |
-|-------------------|-----|
-| NestJS + MongoDB  | API, data layer & aggregation |
-| Next.js (App Router) | UI & SSR |
-| React Query       | Data fetching / cache |
-| Tailwind CSS      | Styling |
+## Funcionalidades Implementadas
 
-> **Time-box:** aim for **4-8 h** of focused work.  
-> When time is up, push what you have — unfinished is OK, but document what’s missing.
+### ✅ Backend (NestJS + MongoDB)
+- **Arquitetura DDD**: Domínio, infraestrutura e aplicação separados
+- **CRUD de Livros**: Endpoints para criar, listar, atualizar e deletar livros
+- **Top Books**: Endpoint de agregação `/books/top` que retorna livros ordenados por rating
+- **Testes**: 333 testes passando (domínio, infraestrutura e backend)
+- **Mappers**: Conversão entre DTOs e entidades de domínio
 
----
+### ✅ Frontend (Next.js + React Query + Tailwind)
+- **Listagem de Livros**: Página inicial mostra os livros top-rated
+- **Cadastro de Livros**: Formulário para adicionar novos livros
+- **React Query**: Cache e sincronização de dados
+- **Design Responsivo**: Interface com Tailwind CSS
 
-## 1. What you must deliver
+### ✅ Packages Reutilizáveis
+- **@domain/core**: Entidades, value objects, DTOs e mappers
+- **@infrastructure/data**: Repositórios e modelos do MongoDB
+- **@components/ui**: Componentes UI reutilizáveis (BookCard, BookForm)
 
-| Area | Minimum requirements |
-|------|----------------------|
-| **Backend** | *Connect to MongoDB* via env var<br>*Models*: `Book`, `Review` (rating 1-5)<br>*CRUD* endpoints for both entities (`/books`, `/books/:id/reviews`)<br>*Aggregation*: `GET /books/top?limit=10` returns avgRating + reviewCount, sorted desc<br>*Tests*: at least **one** e2e test hitting `/books/top` |
-| **Frontend** | `/books` page listing the top books (uses React Query)<br>Book detail page showing reviews and a form to add a review (optimistic update welcome)<br>Responsive UI with Tailwind |
-| **DX / Ops** | Clear local-dev instructions (README or Makefile)<br>`.env.example` with all needed vars<br>Lint + format commands<br>(Optional) Docker setup |
+## Como Executar
 
----
-
-## 2. Local setup expected by reviewers
-
+### Pré-requisitos
 ```bash
-pnpm install          # monorepo or multiple projects — you choose
-pnpm dev              # should start both backend and frontend
-# backend on :3001, frontend on :3000 is a common pattern
+# Node.js 18+ e pnpm
+npm install -g pnpm
+
+# MongoDB rodando localmente ou Docker
+docker run -d -p 27017:27017 --name mongodb mongo:latest
 ```
 
-If you rely on Docker (e.g. docker compose up mongo), document it.
+### Instalação
+```bash
+# Clone e instale dependências
+git clone <repo-url>
+cd hub-xp
+pnpm install
+```
 
-⸻
+### Executar
+```bash
+# Backend (porta 3001)
+pnpm --filter backend dev
 
-## 3. Submission guidelines
-1.	Fork this repo, build on main.
-2.	Open a pull request to your own fork when finished. In the PR description include:
-  - (i) What is done / not done,
-  - (ii)	How to run tests and
-  - (iii)	Any trade-offs or shortcuts
-3.	Do not open a PR against the original repo.
+# Frontend (porta 3000) 
+pnpm --filter frontend dev
 
-⸻
+# Ou executar ambos
+pnpm dev
+```
 
-## 4. Evaluation rubric
+### Testes
+```bash
+# Executar todos os testes
+pnpm test
 
-Criterion	Weight
+# Testes por package
+pnpm --filter @domain/core test
+pnpm --filter @infrastructure/data test
+pnpm --filter backend test
+```
 
-- Correctness & tests	30 %
-- Code quality / structure	20 %
-- Data modelling & validation	15 %
-- Aggregation query efficiency	10 %
-- Frontend UX & accessibility	15 %
-- Documentation	10 %
+## Arquitetura
 
+```
+hub-xp/
+├── apps/
+│   ├── backend/         # API NestJS (porta 3001)
+│   └── frontend/        # Next.js App (porta 3000)
+├── packages/
+│   ├── domain/          # Lógica de negócio (DDD)
+│   ├── infrastructure/  # MongoDB repositories
+│   └── components/      # Componentes UI reutilizáveis
+```
 
-⸻
+### Fluxo DDD no Backend
+```
+HTTP Request (DTO) → Controller: DTO → Domain Entity → Service: Business Logic → Service: Domain Entity → DTO → Repository: Database
+```
 
-## 5. Constraints & tips
+## Tecnologias
 
--	TypeScript everywhere.
--	Keep third-party libs minimal (testing & dev-tools are fine).
--	Commit early & often — we read history.
--	Feel free to use dev-containers / Codespaces; just explain how.
+- **Backend**: NestJS, MongoDB, TypeScript, Jest
+- **Frontend**: Next.js 15, React Query, Tailwind CSS
+- **Arquitetura**: DDD, Clean Architecture, Monorepo
+- **Testes**: Jest, Supertest (333 testes passando)
 
-⸻
+## Status
 
-Good luck 🚀
+✅ **Funcionalidades Básicas Completas**:
+- Listagem de livros (página inicial)
+- Cadastro de livros (/books/new)
+- Backend DDD com agregação
+- Testes cobrindo domínio e infraestrutura
+
+🚧 **Não Implementado** (fora do escopo básico):
+- Reviews/avaliações no frontend
+- Detalhes do livro
+- Edição/exclusão de livros
+- Autenticação
