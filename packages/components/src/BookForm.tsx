@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { CreateBookDto } from '@domain/core';
 import { validate, ValidationError } from 'class-validator';
 import { plainToClass } from 'class-transformer';
+import { BookFormDto } from './BookFormDto';
 
 interface BookFormProps {
-  onSubmit: (data: CreateBookDto) => void;
+  onSubmit: (data: BookFormDto) => void;
   isLoading?: boolean;
 }
 
@@ -23,13 +23,11 @@ export function BookForm({ onSubmit, isLoading = false }: BookFormProps) {
 
   const [errors, setErrors] = useState<ValidationErrors>({});
 
-  // Convert validation errors from class-validator to our format
   const formatValidationErrors = (validationErrors: ValidationError[]): ValidationErrors => {
     const formatted: ValidationErrors = {};
     
     validationErrors.forEach(error => {
       if (error.constraints) {
-        // Get the first constraint message
         const firstConstraintKey = Object.keys(error.constraints)[0];
         formatted[error.property] = error.constraints[firstConstraintKey];
       }
@@ -39,8 +37,7 @@ export function BookForm({ onSubmit, isLoading = false }: BookFormProps) {
   };
 
   const validateForm = async (): Promise<boolean> => {
-    // Create DTO instance
-    const dto = plainToClass(CreateBookDto, {
+    const dto = plainToClass(BookFormDto, {
       title: formData.title.trim(),
       author: formData.author.trim(),
       isbn: formData.isbn?.trim() || undefined,
@@ -48,7 +45,6 @@ export function BookForm({ onSubmit, isLoading = false }: BookFormProps) {
       description: formData.description?.trim() || undefined,
     });
 
-    // Validate using class-validator
     const validationErrors = await validate(dto);
     
     if (validationErrors.length > 0) {
@@ -68,8 +64,7 @@ export function BookForm({ onSubmit, isLoading = false }: BookFormProps) {
       return;
     }
 
-    // Create final DTO
-    const dto = plainToClass(CreateBookDto, {
+    const dto = plainToClass(BookFormDto, {
       title: formData.title.trim(),
       author: formData.author.trim(),
       isbn: formData.isbn?.trim() || undefined,
@@ -90,7 +85,6 @@ export function BookForm({ onSubmit, isLoading = false }: BookFormProps) {
       [name]: newValue
     }));
 
-    // Clear error for this field when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -99,116 +93,109 @@ export function BookForm({ onSubmit, isLoading = false }: BookFormProps) {
     }
   };
 
-  const inputClassName = (fieldName: string) =>
-    `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
-      errors[fieldName] 
-        ? 'border-red-300 focus:ring-red-500' 
-        : 'border-gray-300'
-    }`;
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow">
-      <div>
-        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-          Title *
-        </label>
+    <form onSubmit={handleSubmit}>
+      <div style={{marginBottom: '10px'}}>
+        <label htmlFor="title" style={{display: 'block', marginBottom: '5px'}}>Title</label>
         <input
           type="text"
           id="title"
           name="title"
-          required
           value={formData.title}
           onChange={handleChange}
-          className={inputClassName('title')}
+          style={{
+            width: '100%',
+            padding: '8px',
+            border: '1px solid #ccc',
+            borderRadius: '4px'
+          }}
         />
-        {errors.title && (
-          <p className="mt-1 text-sm text-red-600">{errors.title}</p>
-        )}
+        {errors.title && <p style={{color: 'red', margin: '5px 0 0 0'}}>{errors.title}</p>}
       </div>
 
-      <div>
-        <label htmlFor="author" className="block text-sm font-medium text-gray-700 mb-2">
-          Author *
-        </label>
+      <div style={{marginBottom: '10px'}}>
+        <label htmlFor="author" style={{display: 'block', marginBottom: '5px'}}>Author</label>
         <input
           type="text"
           id="author"
           name="author"
-          required
           value={formData.author}
           onChange={handleChange}
-          className={inputClassName('author')}
+          style={{
+            width: '100%',
+            padding: '8px',
+            border: '1px solid #ccc',
+            borderRadius: '4px'
+          }}
         />
-        {errors.author && (
-          <p className="mt-1 text-sm text-red-600">{errors.author}</p>
-        )}
+        {errors.author && <p style={{color: 'red', margin: '5px 0 0 0'}}>{errors.author}</p>}
       </div>
 
-      <div>
-        <label htmlFor="isbn" className="block text-sm font-medium text-gray-700 mb-2">
-          ISBN
-        </label>
+      <div style={{marginBottom: '10px'}}>
+        <label htmlFor="isbn" style={{display: 'block', marginBottom: '5px'}}>ISBN</label>
         <input
           type="text"
           id="isbn"
           name="isbn"
-          placeholder="e.g., 9780134494166 or 0134494164"
           value={formData.isbn}
           onChange={handleChange}
-          className={inputClassName('isbn')}
+          style={{
+            width: '100%',
+            padding: '8px',
+            border: '1px solid #ccc',
+            borderRadius: '4px'
+          }}
         />
-        {errors.isbn && (
-          <p className="mt-1 text-sm text-red-600">{errors.isbn}</p>
-        )}
-        <p className="mt-1 text-xs text-gray-500">
-          Optional. Enter 10 or 13 digit ISBN.
-        </p>
+        {errors.isbn && <p style={{color: 'red', margin: '5px 0 0 0'}}>{errors.isbn}</p>}
       </div>
 
-      <div>
-        <label htmlFor="publishedYear" className="block text-sm font-medium text-gray-700 mb-2">
-          Published Year *
-        </label>
+      <div style={{marginBottom: '10px'}}>
+        <label htmlFor="publishedYear" style={{display: 'block', marginBottom: '5px'}}>Published Year</label>
         <input
           type="number"
           id="publishedYear"
           name="publishedYear"
-          required
           value={formData.publishedYear}
           onChange={handleChange}
-          className={inputClassName('publishedYear')}
+          style={{
+            width: '100%',
+            padding: '8px',
+            border: '1px solid #ccc',
+            borderRadius: '4px'
+          }}
         />
-        {errors.publishedYear && (
-          <p className="mt-1 text-sm text-red-600">{errors.publishedYear}</p>
-        )}
+        {errors.publishedYear && <p style={{color: 'red', margin: '5px 0 0 0'}}>{errors.publishedYear}</p>}
       </div>
 
-      <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-          Description
-        </label>
+      <div style={{marginBottom: '10px'}}>
+        <label htmlFor="description" style={{display: 'block', marginBottom: '5px'}}>Description</label>
         <textarea
           id="description"
           name="description"
-          rows={4}
           value={formData.description}
           onChange={handleChange}
-          className={inputClassName('description')}
-          placeholder="A brief description of the book..."
+          style={{
+            width: '100%',
+            padding: '8px',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            minHeight: '60px'
+          }}
         />
-        {errors.description && (
-          <p className="mt-1 text-sm text-red-600">{errors.description}</p>
-        )}
-        <p className="mt-1 text-xs text-gray-500">
-          Optional. Maximum 1000 characters. 
-          {formData.description ? ` ${formData.description.length}/1000` : ' 0/1000'}
-        </p>
+        {errors.description && <p style={{color: 'red', margin: '5px 0 0 0'}}>{errors.description}</p>}
       </div>
 
-      <button
-        type="submit"
+      <button 
+        type="submit" 
         disabled={isLoading}
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        style={{
+          padding: '10px 20px',
+          backgroundColor: '#007bff',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
       >
         {isLoading ? 'Creating...' : 'Create Book'}
       </button>
