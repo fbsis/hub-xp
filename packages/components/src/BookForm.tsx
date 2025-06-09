@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { validate, ValidationError } from 'class-validator';
 import { plainToClass } from 'class-transformer';
 import { BookFormDto } from './BookFormDto';
+import { Input, Label, Button, Textarea } from './form';
 
 interface BookFormProps {
   onSubmit: (data: BookFormDto) => void;
@@ -96,109 +97,71 @@ export function BookForm({ onSubmit, isLoading = false }: BookFormProps) {
   return (
     <form onSubmit={handleSubmit}>
       <div style={{marginBottom: '10px'}}>
-        <label htmlFor="title" style={{display: 'block', marginBottom: '5px'}}>Title</label>
-        <input
+        <Label htmlFor="title" required>Title</Label>
+        <Input
           type="text"
           id="title"
           name="title"
           value={formData.title}
           onChange={handleChange}
-          style={{
-            width: '100%',
-            padding: '8px',
-            border: '1px solid #ccc',
-            borderRadius: '4px'
-          }}
         />
         {errors.title && <p style={{color: 'red', margin: '5px 0 0 0'}}>{errors.title}</p>}
       </div>
 
       <div style={{marginBottom: '10px'}}>
-        <label htmlFor="author" style={{display: 'block', marginBottom: '5px'}}>Author</label>
-        <input
+        <Label htmlFor="author" required>Author</Label>
+        <Input
           type="text"
           id="author"
           name="author"
           value={formData.author}
           onChange={handleChange}
-          style={{
-            width: '100%',
-            padding: '8px',
-            border: '1px solid #ccc',
-            borderRadius: '4px'
-          }}
         />
         {errors.author && <p style={{color: 'red', margin: '5px 0 0 0'}}>{errors.author}</p>}
       </div>
 
       <div style={{marginBottom: '10px'}}>
-        <label htmlFor="isbn" style={{display: 'block', marginBottom: '5px'}}>ISBN</label>
-        <input
+        <Label htmlFor="isbn">ISBN</Label>
+        <Input
           type="text"
           id="isbn"
           name="isbn"
           value={formData.isbn}
           onChange={handleChange}
-          style={{
-            width: '100%',
-            padding: '8px',
-            border: '1px solid #ccc',
-            borderRadius: '4px'
-          }}
         />
         {errors.isbn && <p style={{color: 'red', margin: '5px 0 0 0'}}>{errors.isbn}</p>}
       </div>
 
       <div style={{marginBottom: '10px'}}>
-        <label htmlFor="publishedYear" style={{display: 'block', marginBottom: '5px'}}>Published Year</label>
-        <input
+        <Label htmlFor="publishedYear" required>Published Year</Label>
+        <Input
           type="number"
           id="publishedYear"
           name="publishedYear"
           value={formData.publishedYear}
           onChange={handleChange}
-          style={{
-            width: '100%',
-            padding: '8px',
-            border: '1px solid #ccc',
-            borderRadius: '4px'
-          }}
         />
         {errors.publishedYear && <p style={{color: 'red', margin: '5px 0 0 0'}}>{errors.publishedYear}</p>}
       </div>
 
       <div style={{marginBottom: '10px'}}>
-        <label htmlFor="description" style={{display: 'block', marginBottom: '5px'}}>Description</label>
-        <textarea
+        <Label htmlFor="description">Description</Label>
+        <Textarea
           id="description"
           name="description"
           value={formData.description}
           onChange={handleChange}
-          style={{
-            width: '100%',
-            padding: '8px',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            minHeight: '60px'
-          }}
         />
         {errors.description && <p style={{color: 'red', margin: '5px 0 0 0'}}>{errors.description}</p>}
       </div>
 
-      <button 
+      <Button 
         type="submit" 
         disabled={isLoading}
-        style={{
-          padding: '10px 20px',
-          backgroundColor: '#007bff',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer'
-        }}
+        variant="primary"
       >
         {isLoading ? 'Creating...' : 'Create Book'}
-      </button>
+      </Button>
     </form>
   );
 } 
