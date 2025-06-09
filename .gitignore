@@ -11,3 +11,7 @@ packages/domain/coverage/
 packages/infrastructure/dist/
 
 packages/infrastructure/coverage/
+
+apps/backend/coverage/
+
+packages/test-utils/dist/
