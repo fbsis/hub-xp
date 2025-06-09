@@ -42,7 +42,15 @@ describe('BooksController', () => {
 
       const result = await controller.create(createDto);
 
-      expect(service.create).toHaveBeenCalledWith(createDto);
+      expect(service.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: expect.objectContaining({ value: createDto.title }),
+          author: expect.objectContaining({ value: createDto.author }),
+          isbn: expect.objectContaining({ value: createDto.isbn }),
+          publishedYear: expect.objectContaining({ value: createDto.publishedYear }),
+          description: expect.objectContaining({ value: createDto.description }),
+        })
+      );
       expect(result).toEqual(expected);
     });
 
@@ -152,7 +160,13 @@ describe('BooksController', () => {
 
       const result = await controller.update(bookId, updateDto);
 
-      expect(service.update).toHaveBeenCalledWith(bookId, updateDto);
+      expect(service.update).toHaveBeenCalledWith(
+        bookId,
+        expect.objectContaining({
+          title: expect.objectContaining({ value: updateDto.title }),
+          description: expect.objectContaining({ value: updateDto.description }),
+        })
+      );
       expect(result).toEqual(expected);
     });
 

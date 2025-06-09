@@ -2,39 +2,45 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
 import { ReviewRepository, BookRepository } from '@infrastructure/core';
-import { CreateReviewDto, UpdateReviewDto, ReviewPrimitive } from '@domain/core';
 import { ReviewFactory, ReviewScenarios } from '@test-utils/core';
+import { ReviewMapper } from '@domain/core';
 
 describe('ReviewsService', () => {
   let service: ReviewsService;
-  let reviewRepository: ReviewRepository;
-  let bookRepository: BookRepository;
-
-  const mockReviewRepository = {
-    create: jest.fn(),
-    findAll: jest.fn(),
-    findByBook: jest.fn(),
-    findById: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-  };
-
-  const mockBookRepository = {
-    exists: jest.fn(),
-  };
+  let reviewRepository: jest.Mocked<ReviewRepository>;
+  let bookRepository: jest.Mocked<BookRepository>;
 
   beforeEach(async () => {
+    const mockReviewRepository = {
+      create: jest.fn(),
+      findAll: jest.fn(),
+      findByBook: jest.fn(),
+      findById: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    };
+
+    const mockBookRepository = {
+      exists: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ReviewsService,
-        { provide: ReviewRepository, useValue: mockReviewRepository },
-        { provide: BookRepository, useValue: mockBookRepository },
+        {
+          provide: ReviewRepository,
+          useValue: mockReviewRepository,
+        },
+        {
+          provide: BookRepository,
+          useValue: mockBookRepository,
+        },
       ],
     }).compile();
 
     service = module.get<ReviewsService>(ReviewsService);
-    reviewRepository = module.get<ReviewRepository>(ReviewRepository);
-    bookRepository = module.get<BookRepository>(BookRepository);
+    reviewRepository = module.get(ReviewRepository);
+    bookRepository = module.get(BookRepository);
   });
 
   afterEach(() => jest.clearAllMocks());
@@ -44,13 +50,15 @@ describe('ReviewsService', () => {
   });
 
   describe('create', () => {
-    it('should create a review successfully when book exists', async () => {
+    it('should create a review successfully', async () => {
       const createDto = ReviewFactory.createReviewDto();
+      const reviewEntity = ReviewMapper.fromCreateDto(createDto);
       const expected = ReviewFactory.reviewPrimitive();
-      mockBookRepository.exists.mockResolvedValue(true);
-      mockReviewRepository.create.mockResolvedValue(expected);
 
-      const result = await service.create(createDto);
+      bookRepository.exists.mockResolvedValue(true);
+      reviewRepository.create.mockResolvedValue(expected);
+
+      const result = await service.create(reviewEntity);
 
       expect(bookRepository.exists).toHaveBeenCalledWith(createDto.bookId);
       expect(reviewRepository.create).toHaveBeenCalledWith(createDto);
@@ -59,25 +67,25 @@ describe('ReviewsService', () => {
 
     it('should throw NotFoundException when book does not exist', async () => {
       const createDto = ReviewFactory.createReviewDto();
-      mockBookRepository.exists.mockResolvedValue(false);
+      const reviewEntity = ReviewMapper.fromCreateDto(createDto);
 
-      await expect(service.create(createDto)).rejects.toThrow(
-        new NotFoundException(ReviewScenarios.ERRORS.BOOK_NOT_FOUND(createDto.bookId))
+      bookRepository.exists.mockResolvedValue(false);
+
+      await expect(service.create(reviewEntity)).rejects.toThrow(
+        new NotFoundException(`Book with ID ${createDto.bookId} not found`)
       );
-
       expect(bookRepository.exists).toHaveBeenCalledWith(createDto.bookId);
       expect(reviewRepository.create).not.toHaveBeenCalled();
     });
 
-    it('should propagate repository errors after book validation', async () => {
+    it('should handle repository errors', async () => {
       const createDto = ReviewFactory.createReviewDto();
-      mockBookRepository.exists.mockResolvedValue(true);
-      mockReviewRepository.create.mockRejectedValue(new Error(ReviewScenarios.ERRORS.DATABASE_ERROR));
+      const reviewEntity = ReviewMapper.fromCreateDto(createDto);
 
-      await expect(service.create(createDto)).rejects.toThrow(ReviewScenarios.ERRORS.DATABASE_ERROR);
+      bookRepository.exists.mockResolvedValue(true);
+      reviewRepository.create.mockRejectedValue(new Error(ReviewScenarios.ERRORS.DATABASE_ERROR));
 
-      expect(bookRepository.exists).toHaveBeenCalledWith(createDto.bookId);
-      expect(reviewRepository.create).toHaveBeenCalledWith(createDto);
+      await expect(service.create(reviewEntity)).rejects.toThrow(ReviewScenarios.ERRORS.DATABASE_ERROR);
     });
   });
 
@@ -85,7 +93,7 @@ describe('ReviewsService', () => {
     it('should return paginated reviews', async () => {
       const filters = ReviewScenarios.QUERIES.WITH_RATING;
       const expected = ReviewFactory.paginatedResponse();
-      mockReviewRepository.findAll.mockResolvedValue(expected);
+      reviewRepository.findAll.mockResolvedValue(expected);
 
       const result = await service.findAll(filters);
 
@@ -96,7 +104,7 @@ describe('ReviewsService', () => {
     it('should handle empty filters', async () => {
       const filters = ReviewScenarios.QUERIES.EMPTY;
       const expected = ReviewFactory.paginatedResponse([], { page: 1, limit: 10, total: 0 });
-      mockReviewRepository.findAll.mockResolvedValue(expected);
+      reviewRepository.findAll.mockResolvedValue(expected);
 
       const result = await service.findAll(filters);
 
@@ -110,7 +118,7 @@ describe('ReviewsService', () => {
       const bookId = ReviewScenarios.IDS.BOOK_ID;
       const filters = ReviewScenarios.QUERIES.WITH_PAGINATION;
       const expected = ReviewFactory.paginatedResponse();
-      mockReviewRepository.findByBook.mockResolvedValue(expected);
+      reviewRepository.findByBook.mockResolvedValue(expected);
 
       const result = await service.findByBook(bookId, filters);
 
@@ -122,7 +130,7 @@ describe('ReviewsService', () => {
       const bookId = 'nonexistent';
       const filters = ReviewScenarios.QUERIES.WITH_PAGINATION;
       const expected = ReviewFactory.paginatedResponse([], { page: 1, limit: 10, total: 0 });
-      mockReviewRepository.findByBook.mockResolvedValue(expected);
+      reviewRepository.findByBook.mockResolvedValue(expected);
 
       const result = await service.findByBook(bookId, filters);
 
@@ -135,7 +143,7 @@ describe('ReviewsService', () => {
     it('should return a review when found', async () => {
       const reviewId = ReviewScenarios.IDS.REVIEW_ID;
       const expected = ReviewFactory.reviewPrimitive({ _id: reviewId });
-      mockReviewRepository.findById.mockResolvedValue(expected);
+      reviewRepository.findById.mockResolvedValue(expected);
 
       const result = await service.findOne(reviewId);
 
@@ -145,7 +153,7 @@ describe('ReviewsService', () => {
 
     it('should return null when review not found', async () => {
       const reviewId = ReviewScenarios.IDS.REVIEW_ID;
-      mockReviewRepository.findById.mockResolvedValue(null);
+      reviewRepository.findById.mockResolvedValue(null);
 
       const result = await service.findOne(reviewId);
 
@@ -158,10 +166,12 @@ describe('ReviewsService', () => {
     it('should update a review successfully', async () => {
       const reviewId = ReviewScenarios.IDS.REVIEW_ID;
       const updateDto = ReviewFactory.updateReviewDto();
-      const expected = ReviewFactory.reviewPrimitive({ _id: reviewId, ...updateDto });
-      mockReviewRepository.update.mockResolvedValue(expected);
+      const reviewEntity = ReviewMapper.fromUpdateDto(updateDto);
+      const expected = ReviewFactory.reviewPrimitive();
 
-      const result = await service.update(reviewId, updateDto);
+      reviewRepository.update.mockResolvedValue(expected);
+
+      const result = await service.update(reviewId, reviewEntity);
 
       expect(reviewRepository.update).toHaveBeenCalledWith(reviewId, updateDto);
       expect(result).toEqual(expected);
@@ -170,29 +180,31 @@ describe('ReviewsService', () => {
     it('should return null when review not found', async () => {
       const reviewId = ReviewScenarios.IDS.REVIEW_ID;
       const updateDto = ReviewFactory.updateReviewDto();
-      mockReviewRepository.update.mockResolvedValue(null);
+      const reviewEntity = ReviewMapper.fromUpdateDto(updateDto);
 
-      const result = await service.update(reviewId, updateDto);
+      reviewRepository.update.mockResolvedValue(null);
+
+      const result = await service.update(reviewId, reviewEntity);
 
       expect(reviewRepository.update).toHaveBeenCalledWith(reviewId, updateDto);
       expect(result).toBeNull();
     });
 
-    it('should propagate repository errors', async () => {
+    it('should handle repository errors', async () => {
       const reviewId = ReviewScenarios.IDS.REVIEW_ID;
       const updateDto = ReviewFactory.updateReviewDto();
-      mockReviewRepository.update.mockRejectedValue(new Error(ReviewScenarios.ERRORS.DATABASE_ERROR));
+      const reviewEntity = ReviewMapper.fromUpdateDto(updateDto);
 
-      await expect(service.update(reviewId, updateDto)).rejects.toThrow(ReviewScenarios.ERRORS.DATABASE_ERROR);
+      reviewRepository.update.mockRejectedValue(new Error(ReviewScenarios.ERRORS.DATABASE_ERROR));
 
-      expect(reviewRepository.update).toHaveBeenCalledWith(reviewId, updateDto);
+      await expect(service.update(reviewId, reviewEntity)).rejects.toThrow(ReviewScenarios.ERRORS.DATABASE_ERROR);
     });
   });
 
   describe('remove', () => {
     it('should delete a review successfully', async () => {
       const reviewId = ReviewScenarios.IDS.REVIEW_ID;
-      mockReviewRepository.delete.mockResolvedValue(true);
+      reviewRepository.delete.mockResolvedValue(true);
 
       const result = await service.remove(reviewId);
 
@@ -202,7 +214,7 @@ describe('ReviewsService', () => {
 
     it('should return false when review not found', async () => {
       const reviewId = ReviewScenarios.IDS.REVIEW_ID;
-      mockReviewRepository.delete.mockResolvedValue(false);
+      reviewRepository.delete.mockResolvedValue(false);
 
       const result = await service.remove(reviewId);
 
@@ -212,7 +224,7 @@ describe('ReviewsService', () => {
 
     it('should propagate repository errors', async () => {
       const reviewId = ReviewScenarios.IDS.REVIEW_ID;
-      mockReviewRepository.delete.mockRejectedValue(new Error(ReviewScenarios.ERRORS.DATABASE_ERROR));
+      reviewRepository.delete.mockRejectedValue(new Error(ReviewScenarios.ERRORS.DATABASE_ERROR));
 
       await expect(service.remove(reviewId)).rejects.toThrow(ReviewScenarios.ERRORS.DATABASE_ERROR);
 

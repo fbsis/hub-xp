@@ -41,7 +41,14 @@ describe('ReviewsController', () => {
 
       const result = await controller.create(createDto);
 
-      expect(service.create).toHaveBeenCalledWith(createDto);
+      expect(service.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bookId: expect.objectContaining({ value: createDto.bookId }),
+          rating: expect.objectContaining({ value: createDto.rating }),
+          comment: expect.objectContaining({ value: createDto.comment }),
+          reviewerName: expect.objectContaining({ value: createDto.reviewerName }),
+        })
+      );
       expect(result).toEqual(expected);
     });
 
@@ -136,7 +143,13 @@ describe('ReviewsController', () => {
 
       const result = await controller.update(reviewId, updateDto);
 
-      expect(service.update).toHaveBeenCalledWith(reviewId, updateDto);
+      expect(service.update).toHaveBeenCalledWith(
+        reviewId,
+        expect.objectContaining({
+          rating: expect.objectContaining({ value: updateDto.rating }),
+          comment: expect.objectContaining({ value: updateDto.comment }),
+        })
+      );
       expect(result).toEqual(expected);
     });
 
