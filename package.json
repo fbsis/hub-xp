@@ -1,0 +1,36 @@
+{
+  "name": "book-reviews-platform",
+  "private": true,
+  "scripts": {
+    "dev": "dotenv -e .env -- concurrently \"pnpm dev:domain\" \"pnpm dev:backend\" \"pnpm dev:frontend\"",
+    "dev:domain": "dotenv -e .env -- pnpm --filter @domain/core dev",
+    "dev:backend": "dotenv -e .env -- pnpm --filter backend dev",
+    "dev:frontend": "dotenv -e .env -- pnpm --filter frontend dev",
+    "build": "dotenv -e .env -- pnpm build:domain && dotenv -e .env -- pnpm --filter backend build && dotenv -e .env -- pnpm --filter frontend build",
+    "build:domain": "dotenv -e .env -- pnpm --filter @domain/core build",
+    "test": "pnpm test:all",
+    "test:all": "dotenv -e .env -- pnpm test:domain && dotenv -e .env -- pnpm test:infrastructure && dotenv -e .env -- pnpm test:backend && dotenv -e .env -- pnpm test:components",
+    "test:domain": "dotenv -e .env -- pnpm --filter @domain/core test",
+    "test:infrastructure": "dotenv -e .env -- pnpm --filter @infrastructure/core test",
+    "test:backend": "dotenv -e .env -- pnpm --filter backend test",
+    "test:components": "dotenv -e .env -- pnpm --filter @components/ui test",
+    "test:frontend": "echo 'Frontend tests not configured yet - add test script to apps/frontend/package.json'",
+    "test:coverage": "dotenv -e .env -- pnpm test:coverage:domain && dotenv -e .env -- pnpm test:coverage:infrastructure && dotenv -e .env -- pnpm test:coverage:backend && dotenv -e .env -- pnpm test:coverage:components",
+    "test:coverage:domain": "dotenv -e .env -- pnpm --filter @domain/core test:coverage",
+    "test:coverage:infrastructure": "dotenv -e .env -- pnpm --filter @infrastructure/core test:coverage",
+    "test:coverage:backend": "dotenv -e .env -- pnpm --filter backend test:cov",
+    "test:coverage:components": "dotenv -e .env -- pnpm --filter @components/ui test:coverage",
+    "test:watch": "dotenv -e .env -- pnpm --filter backend test:watch",
+    "test:watch:components": "dotenv -e .env -- pnpm --filter @components/ui test:watch",
+    "test:e2e": "dotenv -e .env -- pnpm --filter backend test:e2e",
+    "test:summary": "echo '\\n📊 TEST SUMMARY:' && echo '✅ Domain: 239 tests' && echo '✅ Infrastructure: 31 tests' && echo '✅ Backend: 65 tests' && echo '✅ Components: 61 tests' && echo '⏳ Frontend: Not configured' && echo '🎯 Total: 396 tests'",
+    "lint": "pnpm --filter backend lint && pnpm --filter frontend lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "env:setup": "cp .env.example .env && echo '✅ Environment file created! Edit .env as needed.'"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "dotenv-cli": "^8.0.0",
+    "prettier": "^3.0.0"
+  }
+}

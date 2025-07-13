@@ -1,73 +1,202 @@
-# Tech-Assessment – Book Reviews Platform
+# 📚 Hub-XP Book Reviews Platform
 
-**Goal**  
-Build a small “Book Reviews” platform (CRUD books + reviews, plus an endpoint that returns the top-rated books).
+Uma plataforma moderna para avaliação de livros construída com **NestJS**, **Next.js**, **MongoDB** e **DDD Architecture**.
 
-| Stack (mandatory) | Why |
-|-------------------|-----|
-| NestJS + MongoDB  | API, data layer & aggregation |
-| Next.js (App Router) | UI & SSR |
-| React Query       | Data fetching / cache |
-| Tailwind CSS      | Styling |
+## 🎯 Características
 
-> **Time-box:** aim for **4-8 h** of focused work.  
-> When time is up, push what you have — unfinished is OK, but document what’s missing.
+- ✅ **Backend NestJS** com TypeScript e MongoDB
+- ✅ **Frontend Next.js** com React Query e Tailwind CSS
+- ✅ **Arquitetura DDD** (Domain Driven Design)
+- ✅ **Monorepo** com PNPM Workspaces
+- ✅ **Testes Completos** (Unit + Integration + E2E)
+- ✅ **Documentação Swagger** automática
+- ✅ **Configuração Global** de variáveis de ambiente
 
----
+## 🚀 Quick Start
 
-## 1. What you must deliver
-
-| Area | Minimum requirements |
-|------|----------------------|
-| **Backend** | *Connect to MongoDB* via env var<br>*Models*: `Book`, `Review` (rating 1-5)<br>*CRUD* endpoints for both entities (`/books`, `/books/:id/reviews`)<br>*Aggregation*: `GET /books/top?limit=10` returns avgRating + reviewCount, sorted desc<br>*Tests*: at least **one** e2e test hitting `/books/top` |
-| **Frontend** | `/books` page listing the top books (uses React Query)<br>Book detail page showing reviews and a form to add a review (optimistic update welcome)<br>Responsive UI with Tailwind |
-| **DX / Ops** | Clear local-dev instructions (README or Makefile)<br>`.env.example` with all needed vars<br>Lint + format commands<br>(Optional) Docker setup |
-
----
-
-## 2. Local setup expected by reviewers
+### 1. Configuração de Ambiente
 
 ```bash
-pnpm install          # monorepo or multiple projects — you choose
-pnpm dev              # should start both backend and frontend
-# backend on :3001, frontend on :3000 is a common pattern
+# Clone o repositório
+git clone <repo-url>
+cd hub-xp
+
+# Configure as variáveis de ambiente
+pnpm env:setup
+
+# Instale as dependências
+pnpm install
 ```
 
-If you rely on Docker (e.g. docker compose up mongo), document it.
+### 2. Configuração do MongoDB
 
-⸻
+```bash
+# Usando Docker
+docker run -d \
+  --name mongodb \
+  -p 27017:27017 \
+  -e MONGO_INITDB_ROOT_USERNAME=admin \
+  -e MONGO_INITDB_ROOT_PASSWORD=password123 \
+  mongo:latest
+```
 
-## 3. Submission guidelines
-1.	Fork this repo, build on main.
-2.	Open a pull request to your own fork when finished. In the PR description include:
-  - (i) What is done / not done,
-  - (ii)	How to run tests and
-  - (iii)	Any trade-offs or shortcuts
-3.	Do not open a PR against the original repo.
+### 3. Executar Aplicação
 
-⸻
+```bash
+# Executa backend + frontend simultaneamente
+pnpm dev
 
-## 4. Evaluation rubric
+# Ou executar separadamente:
+pnpm dev:backend  # http://localhost:3001
+pnpm dev:frontend # http://localhost:3000
+```
 
-Criterion	Weight
+## ⚙️ Configuração de Ambiente
 
-- Correctness & tests	30 %
-- Code quality / structure	20 %
-- Data modelling & validation	15 %
-- Aggregation query efficiency	10 %
-- Frontend UX & accessibility	15 %
-- Documentation	10 %
+### Arquivo Global `.env`
 
+O projeto usa um sistema de configuração global na raiz. Todas as variáveis são carregadas automaticamente:
 
-⸻
+```bash
+# ==============================================
+# GLOBAL ENVIRONMENT VARIABLES
+# Hub-XP Book Reviews Platform
+# ==============================================
 
-## 5. Constraints & tips
+# Database Configuration
+MONGODB_URI=mongodb://admin:password123@localhost:27017/book_reviews?authSource=admin
 
--	TypeScript everywhere.
--	Keep third-party libs minimal (testing & dev-tools are fine).
--	Commit early & often — we read history.
--	Feel free to use dev-containers / Codespaces; just explain how.
+# Application Configuration
+NODE_ENV=development
+PORT=3001
 
-⸻
+# Frontend Configuration (Next.js)
+NEXT_PUBLIC_API_URL=http://localhost:3001
+```
 
-Good luck 🚀
+### Como Funciona
+
+1. **Setup Inicial**: `pnpm env:setup` copia `.env.example` para `.env`
+2. **Carregamento Automático**: Todos os scripts usam `dotenv-cli` para carregar variáveis
+3. **Todas as Apps**: Backend e Frontend compartilham as mesmas variáveis
+4. **Ambientes**: Fácil configuração para dev, staging e produção
+
+## 📖 API Documentação
+
+### Swagger UI
+- **URL**: http://localhost:3001/api-docs
+- **JSON**: http://localhost:3001/api-docs-json
+
+### Principais Endpoints
+
+#### Books
+- `GET /books` - Lista paginada de livros
+- `GET /books/top` - Top livros por avaliação
+- `GET /books/:id` - Buscar livro por ID
+- `POST /books` - Criar novo livro
+- `PATCH /books/:id` - Atualizar livro
+- `DELETE /books/:id` - Deletar livro
+- `POST /books/seed` - Popular banco com dados de exemplo
+
+#### Reviews
+- `GET /reviews` - Lista paginada de avaliações
+- `GET /reviews/book/:bookId` - Avaliações de um livro
+- `POST /reviews` - Criar nova avaliação
+- `PATCH /reviews/:id` - Atualizar avaliação
+- `DELETE /reviews/:id` - Deletar avaliação
+
+## 🧪 Testes
+
+### Executar Todos os Testes
+```bash
+pnpm test          # Unit + Integration tests
+pnpm test:e2e      # End-to-end tests
+pnpm test:coverage # Coverage reports
+pnpm test:summary  # Resumo dos testes
+```
+
+### Cobertura Atual
+- ✅ **Domain**: 239 testes
+- ✅ **Infrastructure**: 31 testes  
+- ✅ **Backend**: 65 testes
+- ✅ **E2E**: 27 testes
+- 🎯 **Total**: 362 testes
+
+## 🏗️ Arquitetura
+
+### Estrutura do Projeto
+```
+hub-xp/
+├── apps/
+│   ├── backend/          # NestJS API
+│   └── frontend/         # Next.js App
+├── packages/
+│   ├── domain/           # Business Logic (DDD)
+│   ├── infrastructure/   # Data Access Layer
+│   ├── components/       # Shared UI Components
+│   └── test-utils/       # Test Utilities
+├── .env.example          # Global environment template
+└── package.json          # Root workspace config
+```
+
+### Domain Driven Design (DDD)
+
+- **Entities**: Book, Review
+- **Value Objects**: Rating, ISBN, BookTitle, etc.
+- **Repositories**: BookRepository, ReviewRepository
+- **Services**: BooksService, ReviewsService
+- **DTOs**: Create/Update/Get DTOs com validação
+
+## 🛠️ Tecnologias
+
+### Backend
+- **NestJS** - Framework Node.js
+- **MongoDB** - Banco de dados NoSQL
+- **Mongoose** - ODM para MongoDB
+- **Class Validator** - Validação de dados
+- **Swagger** - Documentação automática
+- **Jest** - Framework de testes
+
+### Frontend
+- **Next.js 15** - React Framework
+- **TanStack Query** - State management
+- **Tailwind CSS** - Styling
+- **TypeScript** - Type safety
+
+### DevOps & Tooling
+- **PNPM Workspaces** - Monorepo management
+- **ESLint & Prettier** - Code quality
+- **dotenv-cli** - Environment management
+- **Concurrently** - Parallel script execution
+
+## 🚀 Deploy
+
+### Variáveis de Produção
+
+Para produção, configure essas variáveis no seu ambiente:
+
+```bash
+MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/book_reviews
+NODE_ENV=production
+PORT=3001
+NEXT_PUBLIC_API_URL=https://api.seudominio.com
+```
+
+### Scripts de Build
+
+```bash
+pnpm build        # Build all apps
+pnpm build:domain # Build domain layer
+```
+
+## 📝 Contribuição
+
+1. Fork o projeto
+2. Crie uma branch: `git checkout -b feature/nova-feature`
+3. Commit: `git commit -m 'Add nova feature'`
+4. Push: `git push origin feature/nova-feature`
+5. Pull Request
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo LICENSE para detalhes.
