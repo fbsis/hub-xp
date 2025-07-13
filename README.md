@@ -1,37 +1,40 @@
 # 📚 Hub-XP Book Reviews Platform
 
-Uma plataforma moderna para avaliação de livros construída com **NestJS**, **Next.js**, **MongoDB** e **DDD Architecture**.
+> 🇧🇷 [Leia esta documentação em Português](./README-ptBR.md)
+> 🇪🇸 [Lea esta documentación en Español](./README-es.md)
 
-## 🎯 Características
+A modern platform for book reviews built with **NestJS**, **Next.js**, **MongoDB**, and **DDD Architecture**.
 
-- ✅ **Backend NestJS** com TypeScript e MongoDB
-- ✅ **Frontend Next.js** com React Query e Tailwind CSS
-- ✅ **Arquitetura DDD** (Domain Driven Design)
-- ✅ **Monorepo** com PNPM Workspaces
-- ✅ **Testes Completos** (Unit + Integration + E2E)
-- ✅ **Documentação Swagger** automática
-- ✅ **Configuração Global** de variáveis de ambiente
+## 🎯 Features
+
+- ✅ **NestJS Backend** with TypeScript and MongoDB
+- ✅ **Next.js Frontend** with React Query and Tailwind CSS
+- ✅ **DDD Architecture** (Domain Driven Design)
+- ✅ **Monorepo** with PNPM Workspaces
+- ✅ **Comprehensive Testing** (Unit + Integration + E2E)
+- ✅ **Automatic Swagger Documentation**
+- ✅ **Global Environment Configuration**
 
 ## 🚀 Quick Start
 
-### 1. Configuração de Ambiente
+### 1. Environment Setup
 
 ```bash
-# Clone o repositório
+# Clone the repository
 git clone <repo-url>
 cd hub-xp
 
-# Configure as variáveis de ambiente
+# Set up environment variables
 pnpm env:setup
 
-# Instale as dependências
+# Install dependencies
 pnpm install
 ```
 
-### 2. Configuração do MongoDB
+### 2. MongoDB Setup
 
 ```bash
-# Usando Docker
+# Using Docker
 docker run -d \
   --name mongodb \
   -p 27017:27017 \
@@ -40,22 +43,22 @@ docker run -d \
   mongo:latest
 ```
 
-### 3. Executar Aplicação
+### 3. Run Application
 
 ```bash
-# Executa backend + frontend simultaneamente
+# Run backend + frontend simultaneously
 pnpm dev
 
-# Ou executar separadamente:
+# Or run separately:
 pnpm dev:backend  # http://localhost:3001
 pnpm dev:frontend # http://localhost:3000
 ```
 
-## ⚙️ Configuração de Ambiente
+## ⚙️ Environment Configuration
 
-### Arquivo Global `.env`
+### Global `.env` File
 
-O projeto usa um sistema de configuração global na raiz. Todas as variáveis são carregadas automaticamente:
+The project uses a global configuration system at the root. All variables are loaded automatically:
 
 ```bash
 # ==============================================
@@ -74,57 +77,57 @@ PORT=3001
 NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
 
-### Como Funciona
+### How It Works
 
-1. **Setup Inicial**: `pnpm env:setup` copia `.env.example` para `.env`
-2. **Carregamento Automático**: Todos os scripts usam `dotenv-cli` para carregar variáveis
-3. **Todas as Apps**: Backend e Frontend compartilham as mesmas variáveis
-4. **Ambientes**: Fácil configuração para dev, staging e produção
+1. **Initial Setup**: `pnpm env:setup` copies `.env.example` to `.env`
+2. **Automatic Loading**: All scripts use `dotenv-cli` to load variables
+3. **All Apps**: Backend and Frontend share the same variables
+4. **Environments**: Easy setup for dev, staging, and production
 
-## 📖 API Documentação
+## 📖 API Documentation
 
 ### Swagger UI
 - **URL**: http://localhost:3001/api-docs
 - **JSON**: http://localhost:3001/api-docs-json
 
-### Principais Endpoints
+### Main Endpoints
 
 #### Books
-- `GET /books` - Lista paginada de livros
-- `GET /books/top` - Top livros por avaliação
-- `GET /books/:id` - Buscar livro por ID
-- `POST /books` - Criar novo livro
-- `PATCH /books/:id` - Atualizar livro
-- `DELETE /books/:id` - Deletar livro
-- `POST /books/seed` - Popular banco com dados de exemplo
+- `GET /books` - Paginated list of books
+- `GET /books/top` - Top books by rating
+- `GET /books/:id` - Get book by ID
+- `POST /books` - Create new book
+- `PATCH /books/:id` - Update book
+- `DELETE /books/:id` - Delete book
+- `POST /books/seed` - Seed database with sample data
 
 #### Reviews
-- `GET /reviews` - Lista paginada de avaliações
-- `GET /reviews/book/:bookId` - Avaliações de um livro
-- `POST /reviews` - Criar nova avaliação
-- `PATCH /reviews/:id` - Atualizar avaliação
-- `DELETE /reviews/:id` - Deletar avaliação
+- `GET /reviews` - Paginated list of reviews
+- `GET /reviews/book/:bookId` - Reviews for a book
+- `POST /reviews` - Create new review
+- `PATCH /reviews/:id` - Update review
+- `DELETE /reviews/:id` - Delete review
 
-## 🧪 Testes
+## 🧪 Testing
 
-### Executar Todos os Testes
+### Run All Tests
 ```bash
 pnpm test          # Unit + Integration tests
 pnpm test:e2e      # End-to-end tests
 pnpm test:coverage # Coverage reports
-pnpm test:summary  # Resumo dos testes
+pnpm test:summary  # Test summary
 ```
 
-### Cobertura Atual
-- ✅ **Domain**: 239 testes
-- ✅ **Infrastructure**: 31 testes  
-- ✅ **Backend**: 65 testes
-- ✅ **E2E**: 27 testes
-- 🎯 **Total**: 362 testes
+### Current Coverage
+- ✅ **Domain**: 239 tests
+- ✅ **Infrastructure**: 31 tests  
+- ✅ **Backend**: 65 tests
+- ✅ **E2E**: 27 tests
+- 🎯 **Total**: 362 tests
 
-## 🏗️ Arquitetura
+## 🏗️ Architecture
 
-### Estrutura do Projeto
+### Project Structure
 ```
 hub-xp/
 ├── apps/
@@ -145,17 +148,17 @@ hub-xp/
 - **Value Objects**: Rating, ISBN, BookTitle, etc.
 - **Repositories**: BookRepository, ReviewRepository
 - **Services**: BooksService, ReviewsService
-- **DTOs**: Create/Update/Get DTOs com validação
+- **DTOs**: Create/Update/Get DTOs with validation
 
-## 🛠️ Tecnologias
+## 🛠️ Technologies
 
 ### Backend
-- **NestJS** - Framework Node.js
-- **MongoDB** - Banco de dados NoSQL
-- **Mongoose** - ODM para MongoDB
-- **Class Validator** - Validação de dados
-- **Swagger** - Documentação automática
-- **Jest** - Framework de testes
+- **NestJS** - Node.js Framework
+- **MongoDB** - NoSQL Database
+- **Mongoose** - ODM for MongoDB
+- **Class Validator** - Data validation
+- **Swagger** - Automatic documentation
+- **Jest** - Testing framework
 
 ### Frontend
 - **Next.js 15** - React Framework
@@ -171,32 +174,32 @@ hub-xp/
 
 ## 🚀 Deploy
 
-### Variáveis de Produção
+### Production Variables
 
-Para produção, configure essas variáveis no seu ambiente:
+For production, set these variables in your environment:
 
 ```bash
 MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/book_reviews
 NODE_ENV=production
 PORT=3001
-NEXT_PUBLIC_API_URL=https://api.seudominio.com
+NEXT_PUBLIC_API_URL=https://api.yourdomain.com
 ```
 
-### Scripts de Build
+### Build Scripts
 
 ```bash
 pnpm build        # Build all apps
 pnpm build:domain # Build domain layer
 ```
 
-## 📝 Contribuição
+## 📝 Contributing
 
-1. Fork o projeto
-2. Crie uma branch: `git checkout -b feature/nova-feature`
-3. Commit: `git commit -m 'Add nova feature'`
-4. Push: `git push origin feature/nova-feature`
+1. Fork the project
+2. Create a branch: `git checkout -b feature/new-feature`
+3. Commit: `git commit -m 'Add new feature'`
+4. Push: `git push origin feature/new-feature`
 5. Pull Request
 
-## 📄 Licença
+## 📄 License
 
-Este projeto está sob a licença MIT. Veja o arquivo LICENSE para detalhes.
+This project is licensed under the MIT License. See the LICENSE file for details.
