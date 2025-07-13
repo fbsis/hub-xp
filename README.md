@@ -15,6 +15,11 @@ A modern platform for book reviews built with **NestJS**, **Next.js**, **MongoDB
 - ✅ **Automatic Swagger Documentation**
 - ✅ **Global Environment Configuration**
 
+## Monorepo
+A monorepo structure was implemented using pnpm, enabling unified configuration to facilitate the use of the .env file, a multi-folder structure, and a single node_modules directory. This results in a significant improvement in installation and execution speed.
+
+The structure was designed to allow the creation of multiple applications in the /app folder, as well as to facilitate the sharing of components such as domains and value objects. This promotes better organization and code reuse across different parts of the project, making development more agile and efficient.
+
 ## 🚀 Quick Start
 
 ### 1. Environment Setup

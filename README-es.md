@@ -15,6 +15,11 @@ Una plataforma moderna para reseñas de libros construida con **NestJS**, **Next
 - ✅ **Documentación Swagger** automática
 - ✅ **Configuración Global** de variables de entorno
 
+## Monorepo
+Se implementó una estructura monorepo utilizando pnpm, lo que permite una configuración unificada para facilitar el uso del archivo .env, una estructura de múltiples carpetas y un único directorio node_modules. Esto resulta en una mejora significativa en la velocidad de instalación y ejecución.
+
+La estructura fue diseñada para permitir la creación de varias aplicaciones en la carpeta /app, así como para facilitar el intercambio de componentes como dominios y objetos de valor. Esto promueve una mejor organización y reutilización del código entre las diferentes partes del proyecto, haciendo que el desarrollo sea más ágil y eficiente.
+
 ## 🚀 Inicio Rápido
 
 ### 1. Configuración del Entorno
